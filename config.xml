@@ -1,0 +1,33 @@
+<config>
+    <profiles>
+        <profile>
+            <!-- this profile is for oyz windows platform -->
+            <id>oyz_win</id>
+            <activation>
+                <os>
+                    <family>windows</family>
+                </os>
+            </activation>
+            <properties>
+                <!-- for raw dataset and preprocess dataset -->
+                <data.path>D:/WORK_DIRECTORY/DATASET/Santander/data</data.path>
+                <!-- for trained model and cross validation result -->
+                <model.path>D:/WORK_DIRECTORY/DATASET/Santander/model</model.path>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>oyz_linux</id>
+            <activation>
+                <os>
+                    <family>linux</family>
+                </os>
+            </activation>
+            <properties>
+
+            </properties>
+        </profile>
+
+        <!-- add your custom profiles here  -->
+    </profiles>
+</config>
