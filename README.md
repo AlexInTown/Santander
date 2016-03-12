@@ -1,11 +1,14 @@
 # Santander
 For Santander Customer Satisfaction
 
-# Requirements
+# Min requirements
 sklearn
 pandas
 scipy
 numpy
 cPickle
+
+# Extra requirements
 xgboost
+theano
 
