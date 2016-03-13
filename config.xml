@@ -9,7 +9,6 @@
                 </os>
             </activation>
             <properties>
-
                 <!-- Path for dataset, model and prediction outputs. -->
                 <data.path>D:/WORK_DIRECTORY/DATASET/Santander/</data.path>
                 <!-- <data.path>/input/ for raw dataset and preprocess dataset -->

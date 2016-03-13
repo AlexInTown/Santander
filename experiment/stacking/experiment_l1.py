@@ -19,13 +19,15 @@ class ExperimentL1:
         if not test_fname:
             test_fname = os.path.join(Config.get_string('data.path'), 'input', 'filtered_test.csv')
         # load train data
-        self.X = pd.read_csv(train_fname)
-        self.X.sort(columns='ID', inplace=1)
-        self.XID = self.X.ID.values
-        self.Y = self.X.TARGET.values
-        self.X = self.X.drop(['ID', 'TARGET'], axis=1)
+        train = pd.read_csv(train_fname)
+        train.sort(columns='ID', inplace=1)
+        self.XID = train.values
+        self.Y = train.TARGET.values
+        self.X = train.drop(['ID', 'TARGET'], axis=1)
         # load test data
-        # self.test = pd.read_csv(test_fname)
+        test = pd.read_csv(test_fname)
+        self.YID = test.ID.values
+        self.test = test.drop(['ID'], axis=1)
         pass
 
     def cross_validation(self, model):
@@ -49,11 +51,11 @@ class ExperimentL1:
         print scores.mean(), scores.std()
         return scores, preds
 
-    def fit_fullset(self):
-        pass
+    def fit_fullset_and_predict(self, model):
+        model.fit(self.X, self.Y)
+        preds = model.predict(self.test)
+        return preds
 
-    def final_predict(self):
-        pass
 
     def param_selection(self, params):
         pass

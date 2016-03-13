@@ -46,7 +46,7 @@ class XgboostModel:
         return self.bst.predict(dtest)
 
     def to_string(self):
-        return None
+        return self.model_out_fname
 
 
 class SklearnModel:
