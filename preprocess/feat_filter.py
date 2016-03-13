@@ -4,6 +4,7 @@ __author__ = 'AlexInTown'
 import os
 import itertools
 import numpy as np
+import pandas as pd
 from sklearn.feature_selection import VarianceThreshold
 from utils.config_utils import Config
 
@@ -14,7 +15,6 @@ def remove_feat_constants(data_frame):
     :param data_frame:
     :return:
     """
-    print("")
     print("Deleting zero variance features...")
     # Let's get the zero variance features by fitting VarianceThreshold
     # selector to the data, but let's not transform the data with
@@ -29,14 +29,15 @@ def remove_feat_constants(data_frame):
     orig_feat_ix = np.arange(data_frame.columns.size)
     feat_ix_delete = np.delete(orig_feat_ix, feat_ix_keep)
     # Delete zero variance feats from the original pandas data frame
-    data_frame = data_frame.drop(labels=data_frame.columns[feat_ix_delete],
+    feat_deleted = [name for name in data_frame.columns[feat_ix_delete]]
+    data_frame = data_frame.drop(labels=feat_deleted,
                                  axis=1)
     # Print info
     n_features_deleted = feat_ix_delete.size
     print("  - Deleted %s / %s features (~= %.1f %%)" % (
         n_features_deleted, n_features_originally,
         100.0 * (np.float(n_features_deleted) / n_features_originally)))
-    return data_frame
+    return data_frame, feat_deleted
 
 
 def remove_feat_identicals(data_frame):
@@ -45,7 +46,6 @@ def remove_feat_identicals(data_frame):
     :param data_frame:
     :return:
     """
-    print("")
     print("Deleting identical features...")
     n_features_originally = data_frame.shape[1]
     # Find the names of identical features by going through all the
@@ -62,7 +62,7 @@ def remove_feat_identicals(data_frame):
     print("  - Deleted %s / %s features (~= %.1f %%)" % (
         n_features_deleted, n_features_originally,
         100.0 * (np.float(n_features_deleted) / n_features_originally)))
-    return data_frame
+    return data_frame, feat_names_delete
 
 
 def remove_feat_by_name(df, columns):
@@ -72,6 +72,22 @@ if __name__=='__main__':
     data_path = Config.get_string('data.path')
     raw_train_path = os.path.join(data_path, 'train.csv')
     raw_test_path = os.path.join(data_path, 'test.csv')
+    print("= Reading raw datasets ...")
+    raw_train = pd.read_csv(raw_train_path, index_col=0, sep=',')
+    raw_test = pd.read_csv(raw_test_path, index_col=0, sep=',')
 
+    print("= Droping useless feat columns in training set ")
+    raw_train, feat_to_delete = remove_feat_constants(raw_train)
+    raw_train, temp = remove_feat_identicals(raw_train)
+    feat_to_delete.extend(temp)
+
+    print("= Droping useless feat columns in test set:")
+    print feat_to_delete
+    raw_test = raw_test.drop(feat_to_delete, axis=1)
+
+    print("= Saving filtered dataset ...")
     filtered_train_path = os.path.join(data_path, 'filtered_train.csv')
     filtered_test_path = os.path.join(data_path, 'filtered_test.csv')
+    raw_train.to_csv(filtered_train_path)
+    raw_test.to_csv(filtered_test_path)
+    print("= DONE! ")
