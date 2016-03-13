@@ -21,7 +21,8 @@ def xgb_param_selection(exp_l1):
     cp.dump((scores,preds), open(fname, 'wb'), protocol=2)
     pass
 
-def xgb_submmition(param):
+
+def xgb_submmision(param):
     if not param:
         param = {'bst:max_depth':10, 'bst:min_child_weight': 4, 'bst:subsample': 0.5, 'bst:colsample_bytree':0.8,  'bst:eta':0.05}
         other = {'silent':0, 'objective':'binary:logistic', 'nthread': 4, 'eval_metric': 'logloss', 'seed':0}
@@ -32,14 +33,12 @@ def xgb_submmition(param):
     # fname = os.path.join(submission_path, xgb_model.to_string() + '_res.csv')
     fname = os.path.join(submission_path, 'xgb_adhoc_param_res.csv')
     print final_preds
-    print exp_l1.YID
-    save_submissions(fname, exp_l1.YID, final_preds)
-
-
+    print exp_l1.test_id
+    save_submissions(fname, exp_l1.test_id, final_preds)
 
 
 if __name__ == '__main__':
     exp_l1 = ExperimentL1()
     # param = xgb_param_selection(exp_l1)
-    xgb_submmition(None)
+    xgb_submmision(None)
 

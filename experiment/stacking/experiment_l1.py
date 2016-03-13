@@ -21,26 +21,26 @@ class ExperimentL1:
         # load train data
         train = pd.read_csv(train_fname)
         train.sort(columns='ID', inplace=1)
-        self.XID = train.values
-        self.Y = train.TARGET.values
-        self.X = train.drop(['ID', 'TARGET'], axis=1)
+        self.train_id = train.values
+        self.train_y = train.TARGET.values
+        self.train_x = train.drop(['ID', 'TARGET'], axis=1)
         # load test data
         test = pd.read_csv(test_fname)
-        self.YID = test.ID.values
-        self.test = test.drop(['ID'], axis=1)
+        self.test_id = test.ID.values
+        self.test_x = test.drop(['ID'], axis=1)
         pass
 
     def cross_validation(self, model):
-        kfold = cross_validation.KFold(self.X.shape[0], n_folds=5, shuffle=True, random_state=self.random_state)
+        kfold = cross_validation.KFold(self.train_x.shape[0], n_folds=5, shuffle=True, random_state=self.random_state)
         scores = list()
-        preds = np.zeros(len(self.Y))
+        preds = np.zeros(len(self.train_y))
         i = 0
         for train_idx, test_idx in kfold:
             print (' --------- fold {0} ---------- '.format(i))
-            train_x = self.X.iloc[train_idx]
-            train_y = self.Y[train_idx]
-            test_x = self.X.iloc[test_idx]
-            test_y = self.Y[test_idx]
+            train_x = self.train_x.iloc[train_idx]
+            train_y = self.train_y[train_idx]
+            test_x = self.train_x.iloc[test_idx]
+            test_y = self.train_y[test_idx]
             model.fit(train_x, train_y)
             pred = model.predict(test_x)
             score = metrics.roc_auc_score(test_y, pred)
@@ -52,10 +52,9 @@ class ExperimentL1:
         return scores, preds
 
     def fit_fullset_and_predict(self, model):
-        model.fit(self.X, self.Y)
-        preds = model.predict(self.test)
+        model.fit(self.train_x, self.train_y)
+        preds = model.predict(self.test_x)
         return preds
-
 
     def param_selection(self, params):
         pass
