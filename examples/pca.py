@@ -114,7 +114,7 @@ def remove_feat_identicals(data_frame):
 
 
 if __name__ == "__main__":
-    train_data_path = os.path.join(Config.get_string('data.path'), 'train.csv')
+    train_data_path = os.path.join(Config.get_string('data.path'), 'input', 'train.csv')
     x_train = pd.read_csv(filepath_or_buffer=train_data_path,
                           index_col=0, sep=',')
     x_train = remove_feat_constants(x_train)

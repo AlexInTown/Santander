@@ -65,11 +65,8 @@ def remove_feat_identicals(data_frame):
     return data_frame, feat_names_delete
 
 
-def remove_feat_by_name(df, columns):
-    pass
-
 if __name__=='__main__':
-    data_path = Config.get_string('data.path')
+    data_path = os.path.join(Config.get_string('data.path'), 'input')
     raw_train_path = os.path.join(data_path, 'train.csv')
     raw_test_path = os.path.join(data_path, 'test.csv')
     print("= Reading raw datasets ...")

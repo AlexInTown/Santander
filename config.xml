@@ -9,10 +9,13 @@
                 </os>
             </activation>
             <properties>
-                <!-- for raw dataset and preprocess dataset -->
-                <data.path>D:/WORK_DIRECTORY/DATASET/Santander/data</data.path>
-                <!-- for trained model and cross validation result -->
-                <model.path>D:/WORK_DIRECTORY/DATASET/Santander/model</model.path>
+
+                <!-- Path for dataset, model and prediction outputs. -->
+                <data.path>D:/WORK_DIRECTORY/DATASET/Santander/</data.path>
+                <!-- <data.path>/input/ for raw dataset and preprocess dataset -->
+                <!-- <data.path>/model/ for trained model and cross validation result -->
+                <!-- <data.path>/output/ for temp results  -->
+                <!-- <data.path>/submission/ for submissions  -->
             </properties>
         </profile>
 
