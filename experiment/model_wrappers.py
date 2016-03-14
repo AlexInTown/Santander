@@ -50,8 +50,10 @@ class XgboostModel:
 
 
 class SklearnModel:
-    def __init__(self, model_type, model_params):
+    def __init__(self, model_params):
         self.model_params = model_params
+        model_type = model_params['model_type']
+        del model_params['model_type']
         kwargs = list()
         fname_parts = [model_type.replace('.', '_')]
         fname_parts.extend(['{0}{1}'.format(val) for val in model_params])
