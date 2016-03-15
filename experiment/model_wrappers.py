@@ -87,5 +87,6 @@ class SklearnModel:
         """
         return self.model.predict(X)
 
-
+    def to_string(self):
+        return self.model_out_fname
 

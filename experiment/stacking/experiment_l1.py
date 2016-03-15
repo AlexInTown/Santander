@@ -31,7 +31,8 @@ class ExperimentL1:
         pass
 
     def cross_validation(self, model):
-        kfold = cross_validation.KFold(self.train_x.shape[0], n_folds=5, shuffle=True, random_state=self.random_state)
+        # kfold = cross_validation.KFold(self.train_x.shape[0], n_folds=5, shuffle=True, random_state=self.random_state)
+        kfold = cross_validation.StratifiedKFold(self.train_y, n_folds=5, shuffle=True, random_state=self.random_state)
         scores = list()
         preds = np.zeros(len(self.train_y))
         i = 0
