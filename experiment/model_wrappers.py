@@ -60,7 +60,7 @@ class SklearnModel:
         for key, val in model_params:
             if isinstance(val, str):
                 val = "'{0}'".format(val)
-            kwarg = '{0}#{1}'.format(key, val)
+            kwarg = '{0}={1}'.format(key, val)
             kwargs.append(kwarg)
 
         kwargs = '_'.join(kwargs)
