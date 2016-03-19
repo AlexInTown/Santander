@@ -56,17 +56,20 @@ class GridSearch:
             cp.dump(preds_list, open(cv_pred_out, 'wb'), protocol=2)
 
         cp.dump((self.model_param_keys, param_vals_list, scores_list), open(cv_out, 'wb'), protocol=2)
-
         if refit_pred_out:
-            preds_list = []
-            for v in itertools.product(*self.model_param_vals):
-                param_dic = {}
-                for i in xrange(len(self.model_param_keys)):
-                    param_dic[self.model_param_keys[i]] = v[i]
-                model = eval('{0}({1})'.format(self.wrapper_type, param_dic))
-                preds = self.experiment.fit_fullset_and_predict(model)
-                preds_list.append(preds)
-            cp.dump(preds_list, open(refit_pred_out, 'wb'), protocol=2)
+            self.fit_full_set_and_predict(refit_pred_out)
+        pass
+
+    def fit_full_set_and_predict(self, refit_pred_out):
+        preds_list = []
+        for v in itertools.product(*self.model_param_vals):
+            param_dic = {}
+            for i in xrange(len(self.model_param_keys)):
+                param_dic[self.model_param_keys[i]] = v[i]
+            model = self.wrapper_class(param_dic)
+            preds = self.experiment.fit_fullset_and_predict(model)
+            preds_list.append(preds)
+        cp.dump(preds_list, open(refit_pred_out, 'wb'), protocol=2)
         pass
 
     def to_string(self):

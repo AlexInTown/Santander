@@ -11,8 +11,8 @@ from model_wrappers import *
 
 
 def xgb_param_selection(exp_l1):
-    param = {'bst:max_depth':10, 'bst:min_child_weight': 4, 'bst:subsample': 0.5, 'bst:colsample_bytree':0.8,  'bst:eta':0.05}
-    other = {'silent':0, 'objective':'binary:logistic', 'nthread': 4, 'eval_metric': 'logloss', 'seed':0}
+    param = {'bst:max_depth':8, 'bst:min_child_weight': 5, 'bst:subsample': 0.6, 'bst:colsample_bytree':0.7,  'bst:eta':0.03}
+    other = {'silent':1, 'objective':'binary:logistic', 'nthread': 4, 'eval_metric': 'logloss', 'seed':0}
     model_param = copy.deepcopy(param)
     model_param.update(other)
     xgb_model = XgboostModel(model_param)
@@ -24,10 +24,10 @@ def xgb_param_selection(exp_l1):
 
 def xgb_submmision(param):
     if not param:
-        param = {'bst:max_depth':10, 'bst:min_child_weight': 4, 'bst:subsample': 0.5, 'bst:colsample_bytree':0.8,  'bst:eta':0.05}
+        param = {'bst:max_depth':8, 'bst:min_child_weight': 5, 'bst:subsample': 0.6, 'bst:colsample_bytree':0.7,  'bst:eta':0.03}
         other = {'silent':0, 'objective':'binary:logistic', 'nthread': 4, 'eval_metric': 'logloss', 'seed':0}
         param.update(other)
-    xgb_model = XgboostModel(param)
+    xgb_model = XgboostModel(param, train_params= {"num_boost_round": 500 })
     final_preds = exp_l1.fit_fullset_and_predict(xgb_model)
     submission_path = os.path.join(Config.get_string('data.path'), 'submission')
     # fname = os.path.join(submission_path, xgb_model.to_string() + '_res.csv')
@@ -40,6 +40,6 @@ def xgb_submmision(param):
 
 if __name__ == '__main__':
     exp_l1 = ExperimentL1()
-    # param = xgb_param_selection(exp_l1)
+    xgb_param_selection(exp_l1)
     xgb_submmision(None)
 
