@@ -73,7 +73,7 @@ class SklearnModel:
         C : array, shape = (n_samples,)
             Returns predicted values.
         """
-        return self.model.predict_proba(X)
+        return self.model.predict_proba(X)[:, 1]
 
     def to_string(self):
         return self.model_out_fname
