@@ -3,9 +3,9 @@ __author__ = 'AlexInTown'
 
 import numpy as np
 import xgboost as xgb
-from sklearn import linear_model, ensemble, neighbors
+import re
 
-
+#model_name_reg = re.compile("<class '(.*\.)*(.*)'>")
 class XgboostModel:
 
     def __init__(self, model_params, train_params=None, test_params=None):
@@ -51,20 +51,11 @@ class XgboostModel:
 class SklearnModel:
     def __init__(self, model_params):
         self.model_params = model_params
-        model_type = model_params['model_type']
+        self.model_class = model_params['model_type']
         del model_params['model_type']
-        kwargs = list()
-        fname_parts = [model_type.replace('.', '_')]
-        fname_parts.extend(['{0}{1}'.format(val) for val in model_params])
-        for key, val in model_params:
-            if isinstance(val, str):
-                val = "'{0}'".format(val)
-            kwarg = '{0}={1}'.format(key, val)
-            kwargs.append(kwarg)
-
-        kwargs = '_'.join(kwargs)
-        self.model_str = '{0}({1})'.format(model_type, kwargs)
-        self.model = eval(self.model_str)
+        fname_parts = [self.model_class.__name__]
+        fname_parts.extend(['{0}#{1}'.format(k,v) for k,v in model_params.iteritems()])
+        self.model = self.model_class(**self.model_params)
         self.model_out_fname = '_'.join(fname_parts)
 
     def fit(self, X, y):
