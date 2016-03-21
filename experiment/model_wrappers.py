@@ -22,12 +22,11 @@ class XgboostModel:
     def fit(self, X, y):
         """Fit model."""
         dtrain = xgb.DMatrix(X, label=np.asarray(y))
-        bst, loss, ntree = xgb.train(self.model_params, dtrain,
-                  num_boost_round=self.train_params['num_boost_round'])
-        self.bst = bst
-        self.loss = loss
-        self.ntree = ntree
-        print loss, ntree
+        #bst, loss, ntree = xgb.train(self.model_params, dtrain, num_boost_round=self.train_params['num_boost_round'])
+        self.bst = xgb.train(self.model_params, dtrain, num_boost_round=self.train_params['num_boost_round'])
+        #self.loss = loss
+        #self.ntree = ntree
+        #print loss, ntree
 
     def predict(self, X):
         """Predict using the xgb model
@@ -60,7 +59,7 @@ class SklearnModel:
         for key, val in model_params:
             if isinstance(val, str):
                 val = "'{0}'".format(val)
-            kwarg = '{0}#{1}'.format(key, val)
+            kwarg = '{0}={1}'.format(key, val)
             kwargs.append(kwarg)
 
         kwargs = '_'.join(kwargs)

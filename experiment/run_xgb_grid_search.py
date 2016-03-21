@@ -17,7 +17,7 @@ def xgb_grid_search():
                   'bst:eta', 'silent', 'objective', 'nthread', 'eval_metric', 'seed']
     param_vals = [[8, 9, 10, 11, 12], [3, 4, 5], [0.5, 0.6, 0.7], [0.6, 0.7, 0.8, 0.9] ,
                   [0.05], [1], ['binary:logistic'], [4], [ 'logloss'], [9438]]
-    gs = GridSearch('XgboostModel', exp, param_keys, param_vals)
+    gs = GridSearch(XgboostModel, exp, param_keys, param_vals)
     gs.search_by_cv('xgb-grid-scores.pkl', cv_pred_out='xgb-grid-preds.pkl', refit_pred_out='xgb-refit-preds.pkl')
     pass
 
