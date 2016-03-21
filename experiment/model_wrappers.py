@@ -54,7 +54,7 @@ class SklearnModel:
         fname_parts = [self.model_class.__name__]
         fname_parts.extend(['{0}#{1}'.format(k,v) for k,v in model_params.iteritems()])
         self.model = self.model_class(**self.model_params)
-        self.model_out_fname = '_'.join(fname_parts)
+        self.model_out_fname = '-'.join(fname_parts)
 
     def fit(self, X, y):
         """Fit model."""

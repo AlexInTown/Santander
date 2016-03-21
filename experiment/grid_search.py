@@ -30,42 +30,38 @@ class GridSearch:
     def search_by_cv(self, cv_out, cv_pred_out=None, refit_pred_out=None):
         """
         Search by cross validation.
-
         :param cv_out: Output pickle file name of cross validation score results.
         :param cv_pred_out: prediction of cross validation each fold.
         :param refit_pred_out: refit on full train set and predict on test set.
         :return: None
         """
-
         # create dataframe of results
         scores_list = []
         preds_list = []
         param_vals_list = []
-        for v in itertools.product(*self.model_param_vals):
+        for v in itertools.product(*(self.model_param_vals[::-1])):
             param_dic = {}
             for i in xrange(len(self.model_param_keys)):
-                param_dic[self.model_param_keys[i]] = v[i]
+                param_dic[self.model_param_keys[-(i+1)]] = v[i]
             print param_dic
             model = self.wrapper_class(param_dic)
             scores, preds = self.experiment.cross_validation(model)
             scores_list.append(scores)
             preds_list.append(preds)
             param_vals_list.append(v)
-
-        if cv_pred_out:
-            cp.dump(preds_list, open(cv_pred_out, 'wb'), protocol=2)
-
-        cp.dump((self.model_param_keys, param_vals_list, scores_list), open(cv_out, 'wb'), protocol=2)
+            if cv_pred_out:
+                cp.dump(preds_list, open(cv_pred_out, 'wb'), protocol=2)
+            cp.dump((self.model_param_keys, param_vals_list, scores_list), open(cv_out, 'wb'), protocol=2)
         if refit_pred_out:
             self.fit_full_set_and_predict(refit_pred_out)
         pass
 
     def fit_full_set_and_predict(self, refit_pred_out):
         preds_list = []
-        for v in itertools.product(*self.model_param_vals):
+        for v in itertools.product(*self.model_param_vals[::-1]):
             param_dic = {}
             for i in xrange(len(self.model_param_keys)):
-                param_dic[self.model_param_keys[i]] = v[i]
+                param_dic[self.model_param_keys[-(i+1)]] = v[i]
             model = self.wrapper_class(param_dic)
             preds = self.experiment.fit_fullset_and_predict(model)
             preds_list.append(preds)
