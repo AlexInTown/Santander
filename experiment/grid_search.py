@@ -74,3 +74,23 @@ class GridSearch:
 
     def to_string(self):
         return self.model_name+ '_cv_'
+
+    @classmethod
+    def write_cv_res_csv(cls, cv_out, cv_csv_out):
+        param_keys, param_vals, scores = cp.load(open(cv_out, 'rb'))
+        assert len(param_vals) == len(scores), 'Error: param value list length do not match score list length!'
+        assert len(param_keys) == len(param_vals[0]), 'Error: param key count and value count do not match!'
+        f = open(cv_csv_out, 'w')
+        for key in param_keys:
+            f.write('{0},'.format(key))
+        for i in xrange(len(scores[0])):
+            f.write('score_{0},'.format(i))
+        f.write('score_mean,score_std\n')
+        for i, params in enumerate(param_vals):
+            for p in params:
+                f.write('{0},'.format(p))
+            for s in scores[i]:
+                f.write('{0},'.format(s))
+            f.write('{0},{1}\n'.format(scores[i].mean(), scores[i].std()))
+        f.close()
+        pass

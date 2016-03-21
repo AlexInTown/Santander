@@ -3,9 +3,7 @@ __author__ = 'AlexInTown'
 
 import numpy as np
 import xgboost as xgb
-import re
 
-#model_name_reg = re.compile("<class '(.*\.)*(.*)'>")
 class XgboostModel:
 
     def __init__(self, model_params, train_params=None, test_params=None):
