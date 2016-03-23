@@ -12,7 +12,7 @@ def rf_grid_search():
     exp = ExperimentL1()
     param_keys = ['model_type', 'n_estimators', 'criterion',
                   'n_jobs']
-    param_vals = [[RandomForestClassifier], [300], ['gini', 'entropy'],  [6]]
+    param_vals = [[RandomForestClassifier], [500], ['gini', 'entropy'],  [6]]
     gs = GridSearch(SklearnModel, exp, param_keys, param_vals)
     gs.search_by_cv('sk-rf-grid-scores.pkl', cv_pred_out='sk-rf-grid-preds.pkl', refit_pred_out='sk-rf-refit-preds.pkl')
     pass
