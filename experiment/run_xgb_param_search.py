@@ -42,7 +42,8 @@ def xgb_submmision(param):
 
 
 if __name__ == '__main__':
-    exp_l1 = ExperimentL1()
-   # xgb_param_selection(exp_l1)
-    xgb_submmision(None)
+    #exp_l1 = ExperimentL1()
+    exp_l1 = ExperimentL1(train_fname='raw_extend_train.csv', test_fname='raw_extend_test.csv')
+    xgb_param_selection(exp_l1)
+    #xgb_submmision(None)
 

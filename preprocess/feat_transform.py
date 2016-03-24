@@ -7,6 +7,7 @@ import pandas as pd
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
 
 def fix_abnormal_value(df):
+
     return df
 
 def scale(train, test):

@@ -15,9 +15,11 @@ class ExperimentL1:
     def __init__(self, train_fname=None, test_fname=None):
         self.random_state = 325243  # do not change it for different l1 models!
         if not train_fname:
-            train_fname = os.path.join(Config.get_string('data.path'), 'input', 'filtered_train.csv')
+            train_fname = 'filtered_train.csv'
         if not test_fname:
-            test_fname = os.path.join(Config.get_string('data.path'), 'input', 'filtered_test.csv')
+            test_fname = 'filtered_test.csv'
+        train_fname = os.path.join(Config.get_string('data.path'), 'input', train_fname)
+        test_fname = os.path.join(Config.get_string('data.path'), 'input', test_fname)
         # load train data
         train = pd.read_csv(train_fname)
         train.sort(columns='ID', inplace=1)
