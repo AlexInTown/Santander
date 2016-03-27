@@ -8,6 +8,7 @@ from xgboost import XGBClassifier
 import param_search
 from hyperopt import hp
 
+
 def xgb_bayes_search(exp):
     param_keys = ['model_type', 'max_depth', 'min_child_weight', 'subsample', 'colsample_bytree',
                   'learning_rate', 'silent', 'objective', 'nthread', 'n_estimators', 'seed']
@@ -18,9 +19,9 @@ def xgb_bayes_search(exp):
                    'learning_rate': hp.uniform('eta', 0.01, 0.02),
                    'silent': 1, 'objective': 'binary:logistic',
                    'nthread': 4, 'n_estimators': 400, 'seed': 9438}
-    gs = param_search.BayesSearch(SklearnModel, exp, param_keys, param_space,
+    bs = param_search.BayesSearch(SklearnModel, exp, param_keys, param_space,
                      cv_out='xgb-bayes-scores.pkl',cv_pred_out='xgb-bayes-preds.pkl')
-    best = gs.search_by_cv()
+    best = bs.search_by_cv()
     param_search.write_cv_res_csv('xgb-bayes-scores.pkl', 'xgb-bayes-scores.csv')
     return best
 

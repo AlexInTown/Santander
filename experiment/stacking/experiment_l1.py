@@ -13,7 +13,8 @@ class ExperimentL1:
     """
 
     def __init__(self, train_fname=None, test_fname=None):
-        self.random_state = 325243  # do not change it for different l1 models!
+        #self.random_state = 325243  # do not change it for different l1 models!
+        self.random_state = 98754  # do not change it for different l1 models!
         if not train_fname:
             train_fname = 'filtered_train.csv'
         if not test_fname:
