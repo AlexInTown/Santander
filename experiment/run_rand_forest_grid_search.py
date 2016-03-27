@@ -5,7 +5,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.pipeline import Pipeline
 from sklearn.grid_search import GridSearchCV
 from experiment.stacking.experiment_l1 import ExperimentL1
-from grid_search import GridSearch
+from param_search import GridSearch
 from model_wrappers import SklearnModel
 from utils.config_utils import Config
 

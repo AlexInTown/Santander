@@ -3,7 +3,7 @@ __author__ = 'zhenouyang'
 import os
 from sklearn.neighbors import KNeighborsClassifier
 from experiment.stacking.experiment_l1 import ExperimentL1
-from grid_search import GridSearch
+from param_search import GridSearch
 from model_wrappers import SklearnModel
 from utils.config_utils import Config
 def knn_grid_search():
