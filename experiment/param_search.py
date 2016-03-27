@@ -1,9 +1,11 @@
 # -*- coding:utf-8 -*-
 __author__ = 'zhenouyang'
+import os
 import time
 import cPickle as cp
 import itertools
 from model_wrappers import SklearnModel, XgboostModel
+from utils.config_utils import Config
 from hyperopt import fmin, tpe, hp, STATUS_OK, Trials
 
 
@@ -28,7 +30,8 @@ def write_cv_res_csv(cls, cv_out, cv_csv_out):
 
 
 class GridSearch:
-    def __init__(self, wrapper_class, experiment, model_param_keys, model_param_vals):
+    def __init__(self, wrapper_class, experiment, model_param_keys, model_param_vals,
+                 cv_out=None, cv_pred_out=None, refit_pred_out=None):
         """
         Constructor of grid search.
         Support search on a set of model parameters, and record the cv result of each param configuration.
@@ -37,6 +40,9 @@ class GridSearch:
         :param experiment: experiment object of ExperimentL1 or ExperimentL2
         :param model_param_keys: list of model param keys. eg. ['paramA', 'paramB', 'paramC']
         :param model_param_vals: list of model param values (iterable). eg. [['valAa', 'valAb'], [0.1, 0.2], (1, 2, 3)]
+        :param cv_out: Output pickle file name of cross validation score results.
+        :param cv_pred_out: prediction of cross validation each fold.
+        :param refit_pred_out: refit on full train set and predict on test set.
         :return: None
         """
 
@@ -49,15 +55,16 @@ class GridSearch:
             self.model_name = model_param_vals[0]
         else:
             self.model_name = 'xgb'
+        self.cv_out = os.path.join(Config.get_string('data.path'), 'output', cv_out) if cv_out else None
+        self.cv_pred_out = os.path.join(Config.get_string('data.path'), 'output', cv_pred_out) if cv_pred_out else None
+        self.refit_pred_out = os.path.join(Config.get_string('data.path'), 'output', refit_pred_out) if refit_pred_out else None
         pass
 
-    def search_by_cv(self, cv_out, cv_pred_out=None, refit_pred_out=None):
+    def search_by_cv(self, ):
         """
         Search by cross validation.
-        :param cv_out: Output pickle file name of cross validation score results.
-        :param cv_pred_out: prediction of cross validation each fold.
-        :param refit_pred_out: refit on full train set and predict on test set.
-        :return: None
+
+        :return: best parameter dict
         """
         # create dataframe of results
         scores_list = []
@@ -75,13 +82,13 @@ class GridSearch:
             scores_list.append(scores)
             preds_list.append(preds)
             param_vals_list.append(v)
-            if cv_pred_out:
-                cp.dump(preds_list, open(cv_pred_out, 'wb'), protocol=2)
-            cp.dump((self.model_param_keys, param_vals_list, scores_list), open(cv_out, 'wb'), protocol=2)
+            if self.cv_pred_out:
+                cp.dump(preds_list, open(self.cv_pred_out, 'wb'), protocol=2)
+            cp.dump((self.model_param_keys, param_vals_list, scores_list), open(self.cv_out, 'wb'), protocol=2)
             if not best_param or best_score > scores.mean():
                 best_param = param_dic
-        if refit_pred_out:
-            self.fit_full_set_and_predict(refit_pred_out)
+        if self.refit_pred_out:
+            self.fit_full_set_and_predict(self.refit_pred_out)
         return best_param
 
     def fit_full_set_and_predict(self, refit_pred_out):
@@ -111,6 +118,9 @@ class BayesSearch:
         :param experiment: experiment object of ExperimentL1 or ExperimentL2
         :param model_param_keys: list of model param keys. eg. ['paramA', 'paramB', 'paramC']
         :param model_param_space: list of model param space
+        :param cv_out: Output pickle file name of cross validation score results.
+        :param cv_pred_out: prediction of cross validation each fold.
+        :param refit_pred_out: refit on full train set and predict on test set.
         :return: None
         """
 
@@ -120,9 +130,9 @@ class BayesSearch:
         self.model_param_space = model_param_space
         self.model_name = self.wrapper_class.__name__
 
-        self.cv_out = cv_out
-        self.cv_pred_out = cv_pred_out
-        self.refit_pred_out = refit_pred_out
+        self.cv_out = os.path.join(Config.get_string('data.path'), 'output', cv_out) if cv_out else None
+        self.cv_pred_out = os.path.join(Config.get_string('data.path'), 'output', cv_pred_out) if cv_pred_out else None
+        self.refit_pred_out = os.path.join(Config.get_string('data.path'), 'output', refit_pred_out) if refit_pred_out else None
 
         self.eval_round = 0
         self.dump_round = dump_round
