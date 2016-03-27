@@ -12,7 +12,7 @@ from hyperopt import hp
 def xgb_bayes_search(exp):
     param_keys = ['model_type', 'max_depth', 'min_child_weight', 'subsample', 'colsample_bytree',
                   'learning_rate', 'silent', 'objective', 'nthread', 'n_estimators', 'seed']
-    param_space = {'model_type': XgboostModel, 'max_depth': hp.quniform('max_depth', 6, 9, 1),
+    param_space = {'model_type': XGBClassifier, 'max_depth': hp.quniform('max_depth', 6, 9, 1),
                    'min_child_weight': hp.quniform('min_child_weight', 3, 7, 1),
                    'subsample': hp.uniform('subsample', 0.5, 1.0),
                    'colsample_bytree': hp.uniform('colsample', 0.5, 1.0),
