@@ -6,14 +6,19 @@ from utils.submit_utils import save_submissions
 from model_wrappers import *
 from xgboost import XGBClassifier
 import param_search
-
+from hyperopt import hp
 
 def xgb_bayes_search(exp):
     param_keys = ['model_type', 'max_depth', 'min_child_weight', 'subsample', 'colsample_bytree',
                   'learning_rate', 'silent', 'objective', 'nthread', 'n_estimators', 'seed']
-    param_vals = [[XGBClassifier], [4, 5, 6, 7, 8], [3, 4, 5, 6], [0.5, 0.6, 0.7, 0.8, 0.9, 0.95], [0.5, 0.6, 0.7, 0.8, 0.85, 0.9] ,
-                  [0.01, 0.02, 0.03, 0.04], [1], ['binary:logistic'], [4], [350, 450], [9438]]
-    gs = param_search.BayesSearch(SklearnModel, exp, param_keys, param_vals,
+    param_space = {'model_type': XgboostModel, 'max_depth': hp.quniform('max_depth', 6, 9, 1),
+                   'min_child_weight': hp.quniform('min_child_weight', 3, 7, 1),
+                   'subsample': hp.uniform('subsample', 0.5, 1.0),
+                   'colsample_bytree': hp.uniform('colsample', 0.5, 1.0),
+                   'learning_rate': hp.uniform('eta', 0.01, 0.02),
+                   'silent': 1, 'objective': 'binary:logistic',
+                   'nthread': 4, 'n_estimators': 400, 'seed': 9438}
+    gs = param_search.BayesSearch(SklearnModel, exp, param_keys, param_space,
                      cv_out='xgb-bayes-scores.pkl',cv_pred_out='xgb-bayes-preds.pkl')
     best = gs.search_by_cv()
     param_search.write_cv_res_csv('xgb-bayes-scores.pkl', 'xgb-bayes-scores.csv')
