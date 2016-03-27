@@ -134,13 +134,13 @@ class BayesSearch:
         self.cv_pred_out = os.path.join(Config.get_string('data.path'), 'output', cv_pred_out) if cv_pred_out else None
         self.refit_pred_out = os.path.join(Config.get_string('data.path'), 'output', refit_pred_out) if refit_pred_out else None
 
-        self.eval_round = 1
+        self.eval_round = 0
         self.dump_round = dump_round
         self.trials = Trials()
         pass
 
     def objective(self, param_dic):
-        if self.eval_round % self.dump_round == 0:
+        if self.eval_round > 0 and self.eval_round % self.dump_round == 0:
             self.dump_result()
         self.eval_round += 1
         print param_dic
@@ -159,23 +159,23 @@ class BayesSearch:
     def dump_result(self):
         if self.cv_pred_out:
             preds_list = list()
-            for dic in self.trials.trials:
+            for dic in self.trials.trials[-1]:
                 preds = self.trials.trial_attachments(dic)['preds']
                 preds_list.append(preds)
             cp.dump(preds_list, open(self.cv_pred_out, 'wb'), protocol=2)
         if self.cv_out:
             scores_list = list()
-            for dic in self.trials.trials:
+            for dic in self.trials.trials[-1]:
                 scores = self.trials.trial_attachments(dic)['scores']
                 scores_list.append(scores)
-            param_vals_list = [ [dic[k] for k in self.model_param_keys] for dic in self.trials.trials]
+            param_vals_list = [ [dic[k] for k in self.model_param_keys] for dic in self.trials.trials[-1]]
             cp.dump((self.model_param_keys, param_vals_list, scores_list), open(self.cv_out, 'wb'), protocol=2)
 
         if self.refit_pred_out:
             self.fit_full_set_and_predict(self.refit_pred_out)
         pass
 
-    def search_by_cv(self, max_evals=100):
+    def search_by_cv(self, max_evals=201):
         best = fmin(self.objective, space=self.model_param_space, algo=tpe.suggest, max_evals=max_evals, trials=self.trials)
         print 'Best Param:'
         print best
