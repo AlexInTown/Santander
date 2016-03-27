@@ -13,6 +13,9 @@ def write_cv_res_csv(cls, cv_out, cv_csv_out):
     param_keys, param_vals, scores = cp.load(open(cv_out, 'rb'))
     assert len(param_vals) == len(scores), 'Error: param value list length do not match score list length!'
     assert len(param_keys) == len(param_vals[0]), 'Error: param key count and value count do not match!'
+    if isinstance(param_vals[0], dict):
+        param_keys = param_vals[0].keys()
+        param_vals = [param.values() for param in param_vals]
     f = open(cv_csv_out, 'w')
     for key in param_keys:
         f.write('{0},'.format(key))
@@ -109,7 +112,7 @@ class GridSearch:
 
 class BayesSearch:
     def __init__(self, wrapper_class, experiment, model_param_keys, model_param_space,
-                 cv_out=None, cv_pred_out=None, refit_pred_out=None, dump_round = 10):
+                 cv_out=None, cv_pred_out=None, refit_pred_out=None, dump_round=10):
         """
         Constructor of bayes search.
         Support search on a set of model parameters, and record the cv result of each param configuration.
@@ -159,16 +162,17 @@ class BayesSearch:
     def dump_result(self):
         if self.cv_pred_out:
             preds_list = list()
-            for dic in self.trials.trials[-1]:
+            for dic in self.trials.trials[:-1]:
                 preds = self.trials.trial_attachments(dic)['preds']
                 preds_list.append(preds)
             cp.dump(preds_list, open(self.cv_pred_out, 'wb'), protocol=2)
         if self.cv_out:
             scores_list = list()
-            for dic in self.trials.trials[-1]:
+            for dic in self.trials.trials[:-1]:
                 scores = self.trials.trial_attachments(dic)['scores']
                 scores_list.append(scores)
-            param_vals_list = [ [dic[k] for k in self.model_param_keys] for dic in self.trials.trials[-1]]
+            # param_vals_list = [ [dic[k] for k in self.model_param_keys] for dic in self.trials.trials[:-1]]
+            param_vals_list = self.trials.trials[:-1]
             cp.dump((self.model_param_keys, param_vals_list, scores_list), open(self.cv_out, 'wb'), protocol=2)
 
         if self.refit_pred_out:
