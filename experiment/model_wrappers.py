@@ -78,3 +78,33 @@ class SklearnModel:
     def to_string(self):
         return self.model_out_fname
 
+class LasagneModel:
+    def __init__(self, model_params):
+        self.model_params = model_params
+        self.model_class = model_params['model_type']
+        del self.model_params['model_type']
+        self.model = self.model_class(**self.model_params)
+        #self.model_out_fname = '-'.join(fname_parts)
+
+    def fit(self, X, y):
+        """Fit model."""
+        self.model.fit(X, y)
+
+    def predict(self, X):
+        """Predict using the sklearn model
+
+        Parameters
+        ----------
+        X : {array-like, sparse matrix}, shape = (n_samples, n_features)
+            Samples.
+
+        Returns
+        -------
+        C : array, shape = (n_samples,)
+            Returns predicted values.
+        """
+        return self.model.predict_proba(X)[:, 1]
+
+    def to_string(self):
+        return self.model_out_fname
+
