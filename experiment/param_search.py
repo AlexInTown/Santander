@@ -104,7 +104,7 @@ class BayesSearch:
     def __init__(self, wrapper_class, experiment, model_param_keys, model_param_space,
                  cv_out=None, cv_pred_out=None, refit_pred_out=None, dump_round = 10):
         """
-        Constructor of grid search.
+        Constructor of bayes search.
         Support search on a set of model parameters, and record the cv result of each param configuration.
 
         :param wrapper_class: model wrapper type string like 'XgboostModel' or 'SklearnModel'
@@ -124,7 +124,7 @@ class BayesSearch:
         self.cv_pred_out = cv_pred_out
         self.refit_pred_out = refit_pred_out
 
-        self.eval_round = 0
+        self.eval_round = 1
         self.dump_round = dump_round
         self.trials = Trials()
         pass
@@ -150,13 +150,13 @@ class BayesSearch:
         if self.cv_pred_out:
             preds_list = list()
             for dic in self.trials.trials:
-                preds = self.trials.trial_attacments(dic)['preds']
+                preds = self.trials.trial_attachments(dic)['preds']
                 preds_list.append(preds)
             cp.dump(preds_list, open(self.cv_pred_out, 'wb'), protocol=2)
         if self.cv_out:
             scores_list = list()
             for dic in self.trials.trials:
-                scores = self.trials.trial_attacments(dic)['scores']
+                scores = self.trials.trial_attachments(dic)['scores']
                 scores_list.append(scores)
             param_vals_list = [ [dic[k] for k in self.model_param_keys] for dic in self.trials.trials]
             cp.dump((self.model_param_keys, param_vals_list, scores_list), open(self.cv_out, 'wb'), protocol=2)
