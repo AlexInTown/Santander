@@ -39,17 +39,12 @@ def xgb_grid_search(exp):
 
 def xgb_submmision(exp, param=None):
     if not param:
-        # {'colsample_bytree': 0.6, 'silent': 1, 'model_type': <class 'xgboost.sklearn.XGBClassifier'>,
-        # 'learning_rate': 0.01, 'nthread': 4, 'min_child_weight': 5, 'n_estimators': 350, 'subsample': 0.9,
-        # 'seed': 9438, 'objective': 'binary:logistic', 'max_depth': 8}
-        param = {'bst:max_depth':8, 'bst:min_child_weight': 5, 'bst:subsample': 0.7, 'bst:colsample_bytree':0.6,  'bst:eta':0.01}
-        other = {'silent':0, 'objective':'binary:logistic', 'nthread': 4, 'eval_metric': 'logloss', 'seed':9438}
-        param.update(other)
-    xgb_model = XgboostModel(param, train_params= {"num_boost_round": 500 })
+        param = {'colsample_bytree': 0.6923529515220681, 'silent': 1, 'model_type':XGBClassifier, 'learning_rate': 0.014582411837608816, 'nthread': 4, 'min_child_weight': 6.0, 'n_estimators': 400, 'subsample': 0.5530324529773664, 'seed': 9438, 'objective': 'binary:logistic', 'max_depth': 8.0}
+    xgb_model = SklearnModel(param),
     final_preds = exp.fit_fullset_and_predict(xgb_model)
     submission_path = os.path.join(Config.get_string('data.path'), 'submission')
     # fname = os.path.join(submission_path, xgb_model.to_string() + '_res.csv')
-    fname = os.path.join(submission_path, 'xgb_adhoc_param_res.csv')
+    fname = os.path.join(submission_path, 'xgb_bayes_param_res.csv')
     print final_preds
     print exp.test_id
     save_submissions(fname, exp.test_id, final_preds)
@@ -58,6 +53,7 @@ def xgb_submmision(exp, param=None):
 
 if __name__=='__main__':
     exp = ExperimentL1()
+    param = None
     #param = xgb_grid_search(exp)
-    param = xgb_bayes_search(exp)
+    #param = xgb_bayes_search(exp)
     xgb_submmision(exp, param)
