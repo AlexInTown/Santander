@@ -150,7 +150,7 @@ class BayesSearch:
         model = self.wrapper_class(param_dic)
         scores, preds = self.experiment.cross_validation(model)
         return {
-            'loss': scores.mean(),
+            'loss': -scores.mean(),
             'status': STATUS_OK,
             # -- store other results like this
             'eval_time': time.time(),

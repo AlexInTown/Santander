@@ -39,7 +39,7 @@ def xgb_grid_search(exp):
 
 def xgb_submmision(exp, param=None):
     if not param:
-        param = {'colsample_bytree': 0.6923529515220681, 'silent': 1, 'model_type':XGBClassifier, 'learning_rate': 0.014582411837608816, 'nthread': 4, 'min_child_weight': 6.0, 'n_estimators': 400, 'subsample': 0.5530324529773664, 'seed': 9438, 'objective': 'binary:logistic', 'max_depth': 8.0}
+        param = {'colsample_bytree': 0.6475941408157723, 'silent': 1, 'model_type': XGBClassifier, 'learning_rate': 0.018480417410705455, 'nthread': 4, 'min_child_weight': 5.0, 'n_estimators': 400, 'subsample': 0.5998597024787456, 'seed': 9438, 'objective': 'binary:logistic', 'max_depth': 6.0}
     xgb_model = SklearnModel(param)
     final_preds = exp.fit_fullset_and_predict(xgb_model)
     submission_path = os.path.join(Config.get_string('data.path'), 'submission')
@@ -55,5 +55,5 @@ if __name__=='__main__':
     exp = ExperimentL1()
     param = None
     #param = xgb_grid_search(exp)
-    param = xgb_bayes_search(exp)
+    #param = xgb_bayes_search(exp)
     xgb_submmision(exp, param)
