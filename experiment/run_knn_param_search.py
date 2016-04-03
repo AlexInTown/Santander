@@ -14,7 +14,7 @@ def knn_bayes_search():
     param_keys = ['model_type', 'n_neighbors', 'weights',
                   'algorithm', 'leaf_size', 'metric', 'p']#, 'n_jobs']
     param_space = {'model_type': KNeighborsClassifier,
-                   'n_neighbors': hp.quniform('neighbors', 1, 9, 1),
+                   'n_neighbors': hp.choice('neighbors', [1, 2, 3, 4, 5, 6, 7, 8, 12, 16, 20, 24]),
                    'weights': hp.choice('weights',  ['uniform', 'distance']),
                    'algorithm': hp.choice('algorithm',  ['ball_tree', 'kd_tree']),
                    'algorithm':'ball_tree',

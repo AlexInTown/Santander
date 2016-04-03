@@ -2,10 +2,11 @@
 import os
 from stacking.experiment_l1 import ExperimentL1
 from utils.config_utils import Config
-from utils.submit_utils import save_submissions
+from utils.submit_utils import save_submissions, get_top_model_avg_preds
 from model_wrappers import *
 from xgboost.sklearn import XGBClassifier
 import param_search
+import cPickle as cp
 from hyperopt import hp
 
 
@@ -59,5 +60,11 @@ if __name__=='__main__':
     exp = ExperimentL1()
     param = None
     #param = xgb_grid_search(exp)
-    param = xgb_bayes_search(exp)
-    xgb_submmision(exp, param)
+    #param = xgb_bayes_search(exp)
+    #xgb_submmision(exp, param)
+
+    score_fname = os.path.join(Config.get_string('data.path'), 'output', 'xgb-bayes-scores.pkl')
+    refit_pred_fname =os.path.join(Config.get_string('data.path'), 'output', 'xgb-bayes-refit-preds.pkl')
+    preds = get_top_model_avg_preds(score_fname, refit_pred_fname, topK=5)
+    submission_fname = os.path.join(Config.get_string('data.path'), 'output', 'avg-xgb-bayes-refit-preds5.pkl')
+    save_submissions(submission_fname, exp.test_id, preds)

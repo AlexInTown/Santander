@@ -19,6 +19,9 @@ def rf_grid_search():
     gs.search_by_cv('sk-rf-grid-scores.pkl', cv_pred_out='sk-rf-grid-preds.pkl', refit_pred_out='sk-rf-refit-preds.pkl')
     pass
 
+def rf_bayes_search():
+    pass
+
 if __name__=='__main__':
     rf_grid_search()
 
