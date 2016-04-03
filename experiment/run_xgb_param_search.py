@@ -18,10 +18,14 @@ def xgb_bayes_search(exp):
                    'colsample_bytree': hp.uniform('colsample', 0.5, 1.0),
                    'learning_rate': hp.uniform('eta', 0.01, 0.02),
                    'silent': 1, 'objective': 'binary:logistic',
-                   'nthread': 4, 'n_estimators': 400, 'seed': 9438}
+                   'nthread': 8, 'n_estimators': 400, 'seed': 9438}
     bs = param_search.BayesSearch(SklearnModel, exp, param_keys, param_space,
-                     cv_out='xgb-bayes-scores.pkl',cv_pred_out='xgb-bayes-preds.pkl')
+                                  cv_out='xgb-bayes-scores.pkl',
+                                  cv_pred_out='xgb-bayes-preds.pkl',
+                                  refit_pred_out='xgb-bayes-refit-preds.pkl',
+                                  dump_round=10)
     best = bs.search_by_cv()
+    bs.fit_full_set_and_predict('xgb-bayes-refit-preds.pkl')
     param_search.write_cv_res_csv('xgb-bayes-scores.pkl', 'xgb-bayes-scores.csv')
     return best
 
@@ -55,5 +59,5 @@ if __name__=='__main__':
     exp = ExperimentL1()
     param = None
     #param = xgb_grid_search(exp)
-    #param = xgb_bayes_search(exp)
+    param = xgb_bayes_search(exp)
     xgb_submmision(exp, param)

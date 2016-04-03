@@ -9,7 +9,7 @@ from utils.config_utils import Config
 from hyperopt import fmin, tpe, hp, STATUS_OK, Trials
 
 
-def write_cv_res_csv(cls, cv_out, cv_csv_out):
+def write_cv_res_csv(cv_out, cv_csv_out):
     param_keys, param_vals, scores = cp.load(open(cv_out, 'rb'))
     assert len(param_vals) == len(scores), 'Error: param value list length do not match score list length!'
     assert len(param_keys) == len(param_vals[0]), 'Error: param key count and value count do not match!'
@@ -134,6 +134,7 @@ class BayesSearch:
         self.param_vals_list = []
         self.preds_list = []
         self.scores_list = []
+        self.refit_preds_list = []
         self.model_name = self.wrapper_class.__name__
 
         self.cv_out = os.path.join(Config.get_string('data.path'), 'output', cv_out) if cv_out else None
@@ -152,6 +153,10 @@ class BayesSearch:
         print param_dic
         model = self.wrapper_class(param_dic)
         scores, preds = self.experiment.cross_validation(model)
+        if self.refit_pred_out:
+            model = self.wrapper_class(param_dic)
+            refit_pred = self.experiment.fit_fullset_and_predict(model)
+            self.refit_preds_list.append(refit_pred)
         self.param_vals_list.append(param_dic)
         self.scores_list.append(scores)
         self.preds_list.append(preds)
@@ -169,7 +174,8 @@ class BayesSearch:
         if self.cv_out:
             cp.dump((self.model_param_keys, self.param_vals_list, self.scores_list), open(self.cv_out, 'wb'), protocol=2)
         if self.refit_pred_out:
-            self.fit_full_set_and_predict(self.refit_pred_out)
+            cp.dump(self.refit_preds_list, open(self.refit_pred_out, 'wb'), protocol=2)
+           #self.fit_full_set_and_predict(self.refit_pred_out)
         pass
 
     def search_by_cv(self, max_evals=201):
@@ -179,14 +185,14 @@ class BayesSearch:
         return best
 
     def fit_full_set_and_predict(self, refit_pred_out, topK=None):
-        trials = sorted(self.trials.trials[:-1], key = lambda x: x['loss'])
+        trials = sorted(self.trials.trials[:-1], key = lambda x: x['result']['loss'])
         if topK:
             trials = trials[:topK]
         idxs = [t['tid'] for t in trials]
         refit_preds_list = []
         # fit on whole training set and predict
         for i in idxs:
-            model = self.wrapper_class(**self.param_vals_list[i])
+            model = self.wrapper_class(self.param_vals_list[i])
             preds = self.experiment.fit_fullset_and_predict(model)
             refit_preds_list.append(preds)
         if topK:

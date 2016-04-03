@@ -2,6 +2,7 @@
 __author__ = 'AlexInTown'
 
 import numpy as np
+import copy
 import xgboost as xgb
 
 class XgboostModel:
@@ -48,9 +49,9 @@ class XgboostModel:
 
 class SklearnModel:
     def __init__(self, model_params):
-        self.model_params = model_params
+        self.model_params = copy.deepcopy(model_params)
         self.model_class = model_params['model_type']
-        del model_params['model_type']
+        del self.model_params['model_type']
         fname_parts = [self.model_class.__name__]
         fname_parts.extend(['{0}#{1}'.format(k,v) for k,v in model_params.iteritems()])
         self.model = self.model_class(**self.model_params)
