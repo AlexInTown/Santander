@@ -4,7 +4,7 @@ from stacking.experiment_l1 import ExperimentL1
 from utils.config_utils import Config
 from utils.submit_utils import save_submissions
 from model_wrappers import *
-from xgboost import XGBClassifier
+from xgboost.sklearn import XGBClassifier
 import param_search
 from hyperopt import hp
 
