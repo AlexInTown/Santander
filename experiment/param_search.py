@@ -131,6 +131,9 @@ class BayesSearch:
         self.experiment = experiment
         self.model_param_keys = model_param_keys
         self.model_param_space = model_param_space
+        self.param_vals_list = []
+        self.preds_list = []
+        self.scores_list = []
         self.model_name = self.wrapper_class.__name__
 
         self.cv_out = os.path.join(Config.get_string('data.path'), 'output', cv_out) if cv_out else None
@@ -149,32 +152,22 @@ class BayesSearch:
         print param_dic
         model = self.wrapper_class(param_dic)
         scores, preds = self.experiment.cross_validation(model)
+        self.param_vals_list.append(param_dic)
+        self.scores_list.append(scores)
+        self.preds_list.append(preds)
         return {
             'loss': -scores.mean(),
             'status': STATUS_OK,
             # -- store other results like this
             'eval_time': time.time(),
             # -- attachments are handled differently
-            'attachments':
-                {'scores': scores, 'preds': preds}
         }
 
     def dump_result(self):
         if self.cv_pred_out:
-            preds_list = list()
-            for dic in self.trials.trials[:-1]:
-                preds = self.trials.trial_attachments(dic)['preds']
-                preds_list.append(preds)
-            cp.dump(preds_list, open(self.cv_pred_out, 'wb'), protocol=2)
+            cp.dump(self.preds_list, open(self.cv_pred_out, 'wb'), protocol=2)
         if self.cv_out:
-            scores_list = list()
-            for dic in self.trials.trials[:-1]:
-                scores = self.trials.trial_attachments(dic)['scores']
-                scores_list.append(scores)
-            # param_vals_list = [ [dic[k] for k in self.model_param_keys] for dic in self.trials.trials[:-1]]
-            param_vals_list = self.trials.trials[:-1]
-            cp.dump((self.model_param_keys, param_vals_list, scores_list), open(self.cv_out, 'wb'), protocol=2)
-
+            cp.dump((self.model_param_keys, self.param_vals_list, self.scores_list), open(self.cv_out, 'wb'), protocol=2)
         if self.refit_pred_out:
             self.fit_full_set_and_predict(self.refit_pred_out)
         pass
@@ -185,5 +178,20 @@ class BayesSearch:
         print best
         return best
 
-    def fit_full_set_and_predict(self, refit_pred_out):
+    def fit_full_set_and_predict(self, refit_pred_out, topK=None):
+        trials = sorted(self.trials.trials[:-1], key = lambda x: x['loss'])
+        if topK:
+            trials = trials[:topK]
+        idxs = [t['tid'] for t in trials]
+        refit_preds_list = []
+        # fit on whole training set and predict
+        for i in idxs:
+            model = self.wrapper_class(**self.param_vals_list[i])
+            preds = self.experiment.fit_fullset_and_predict(model)
+            refit_preds_list.append(preds)
+        if topK:
+            cp.dump((self.model_param_keys, self.preds_list[idxs], refit_preds_list),
+                    open(refit_pred_out, 'wb'), protocol=2)
+        else:
+            cp.dump(refit_preds_list, open(refit_pred_out, 'wb'), protocol=2)
         pass
