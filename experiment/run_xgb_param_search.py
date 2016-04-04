@@ -44,7 +44,9 @@ def xgb_grid_search(exp):
 
 def xgb_submmision(exp, param=None):
     if not param:
-        param = {'colsample_bytree': 0.6475941408157723, 'silent': 1, 'model_type': XGBClassifier, 'learning_rate': 0.018480417410705455, 'nthread': 4, 'min_child_weight': 5.0, 'n_estimators': 400, 'subsample': 0.5998597024787456, 'seed': 9438, 'objective': 'binary:logistic', 'max_depth': 6.0}
+        #param = {'colsample_bytree': 0.6475941408157723, 'silent': 1, 'model_type': XGBClassifier, 'learning_rate': 0.018480417410705455, 'nthread': 4, 'min_child_weight': 5.0, 'n_estimators': 400, 'subsample': 0.5998597024787456, 'seed': 9438, 'objective': 'binary:logistic', 'max_depth': 6.0}
+        param = {'colsample_bytree': 0.701, 'silent': 1, 'model_type': XGBClassifier, 'learning_rate': 0.202, 'nthread': 4, 'n_estimators': 572, 'subsample': 0.6815, 'seed': 1234, 'objective': 'binary:logistic', 'max_depth': 5}
+
     xgb_model = SklearnModel(param)
     final_preds = exp.fit_fullset_and_predict(xgb_model)
     submission_path = os.path.join(Config.get_string('data.path'), 'submission')
@@ -55,16 +57,20 @@ def xgb_submmision(exp, param=None):
     save_submissions(fname, exp.test_id, final_preds)
 
 
+def xgb_param_avg_submission(exp):
+    score_fname = os.path.join(Config.get_string('data.path'), 'output', 'xgb-bayes-scores.pkl')
+    refit_pred_fname =os.path.join(Config.get_string('data.path'), 'output', 'xgb-bayes-refit-preds.pkl')
+    preds = get_top_model_avg_preds(score_fname, refit_pred_fname, topK=5)
+    submission_fname = os.path.join(Config.get_string('data.path'), 'output', 'avg-xgb-bayes-refit-preds5.csv')
+    save_submissions(submission_fname, exp.test_id, preds)
+
 
 if __name__=='__main__':
     exp = ExperimentL1()
     param = None
     #param = xgb_grid_search(exp)
     #param = xgb_bayes_search(exp)
-    #xgb_submmision(exp, param)
+    xgb_submmision(exp, param)
+    #xgb_param_avg_submission(exp)
 
-    score_fname = os.path.join(Config.get_string('data.path'), 'output', 'xgb-bayes-scores.pkl')
-    refit_pred_fname =os.path.join(Config.get_string('data.path'), 'output', 'xgb-bayes-refit-preds.pkl')
-    preds = get_top_model_avg_preds(score_fname, refit_pred_fname, topK=5)
-    submission_fname = os.path.join(Config.get_string('data.path'), 'output', 'avg-xgb-bayes-refit-preds5.pkl')
-    save_submissions(submission_fname, exp.test_id, preds)
+

@@ -18,8 +18,11 @@ def get_top_model_avg_preds(score_fname, refit_pred_fname, topK=10):
     refit_preds = cp.load(open(refit_pred_fname, 'rb'))
     scores = np.asarray(scores)
     idxs = np.arange(len(scores))
-    scores = scores.mean(axis=1)
-    idxs = sorted(idxs, key=lambda x:scores[x], reverse=1)[:topK]
-    to_avg = refit_preds[idxs]
-    return np.asarray(to_avg).mean(axis=1)
+    mscores = scores.mean(axis=1)
+    idxs = sorted(idxs, key=lambda x:mscores[x], reverse=1)[:topK]
+    for i in idxs:
+        print param_vals[i]
+        print scores[i], scores[i].mean(), scores[i].std()
+    to_avg = np.asarray(refit_preds)[idxs]
+    return to_avg.mean(axis=0)
 
