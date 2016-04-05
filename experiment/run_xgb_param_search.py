@@ -13,21 +13,21 @@ from hyperopt import hp
 def xgb_bayes_search(exp):
     param_keys = ['model_type', 'max_depth', 'min_child_weight', 'subsample', 'colsample_bytree',
                   'learning_rate', 'silent', 'objective', 'nthread', 'n_estimators', 'seed']
-    param_space = {'model_type': XGBClassifier, 'max_depth': hp.quniform('max_depth', 6, 9, 1),
+    param_space = {'model_type': XGBClassifier, 'max_depth': hp.quniform('max_depth', 4, 9, 1),
                    'min_child_weight': hp.quniform('min_child_weight', 3, 7, 1),
                    'subsample': hp.uniform('subsample', 0.5, 1.0),
                    'colsample_bytree': hp.uniform('colsample', 0.5, 1.0),
                    'learning_rate': hp.uniform('eta', 0.01, 0.02),
                    'silent': 1, 'objective': 'binary:logistic',
-                   'nthread': 8, 'n_estimators': 400, 'seed': 9438}
+                   'nthread': 8, 'n_estimators': 580, 'seed': [1234,53454,6676,12893]}
     bs = param_search.BayesSearch(SklearnModel, exp, param_keys, param_space,
-                                  cv_out='xgb-bayes-scores.pkl',
-                                  cv_pred_out='xgb-bayes-preds.pkl',
-                                  refit_pred_out='xgb-bayes-refit-preds.pkl',
+                                  cv_out='xgb2-bayes-scores.pkl',
+                                  cv_pred_out='xgb2-bayes-preds.pkl',
+                                  refit_pred_out='xgb2-bayes-refit-preds.pkl',
                                   dump_round=10)
     best = bs.search_by_cv()
-    bs.fit_full_set_and_predict('xgb-bayes-refit-preds.pkl')
-    param_search.write_cv_res_csv('xgb-bayes-scores.pkl', 'xgb-bayes-scores.csv')
+    #bs.fit_full_set_and_predict('xgb-bayes-refit-preds.pkl')
+    param_search.write_cv_res_csv('xgb2-bayes-scores.pkl', 'xgb2-bayes-scores.csv')
     return best
 
 
