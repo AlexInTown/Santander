@@ -19,7 +19,7 @@ def xgb_bayes_search(exp):
                    'colsample_bytree': hp.uniform('colsample', 0.5, 1.0),
                    'learning_rate': hp.uniform('eta', 0.01, 0.02),
                    'silent': 1, 'objective': 'binary:logistic',
-                   'nthread': 8, 'n_estimators': 580, 'seed': [1234,53454,6676,12893]}
+                   'nthread': 8, 'n_estimators': 580, 'seed': hp.choice('seed', [1234,53454,6676,12893])}
     bs = param_search.BayesSearch(SklearnModel, exp, param_keys, param_space,
                                   cv_out='xgb2-bayes-scores.pkl',
                                   cv_pred_out='xgb2-bayes-preds.pkl',

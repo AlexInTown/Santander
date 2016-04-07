@@ -26,9 +26,9 @@ def rf_bayes_search(train_fname, test_fname, out_fname_prefix='sk-rf-bayes'):
                   'random_state']
 
     param_space = {'model_type': RandomForestClassifier, 'n_estimators': 800,
-                   'max_features': hp.uniform('max_feats', 18, 60, 1),
+                   'max_features': hp.quniform('max_feats', 18, 60, 1),
                    'criterion': hp.choice('crit', ['gini', 'entropy']),
-                   'n_jobs': 4, 'random_state': [1234,53454,6676,12893]}
+                   'n_jobs': 4, 'random_state': hp.choice('seed', [1234,53454,6676,12893])}
 
     bs = param_search.BayesSearch(SklearnModel, exp, param_keys, param_space,
                                   cv_out=out_fname_prefix+'-scores.pkl',

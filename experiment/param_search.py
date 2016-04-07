@@ -133,6 +133,16 @@ class BayesSearch:
         self.experiment = experiment
         self.model_param_keys = model_param_keys
         self.model_param_space = model_param_space
+        self.integer_params = set()
+        for k, v in model_param_space.iteritems():
+            vstr = str(v)
+            if vstr.find('quniform') >= 0 \
+                    or vstr.find('qloguniform') >= 0\
+                    or vstr.find('qnormal') >= 0\
+                    or vstr.find('qnormal') >= 0:
+            #if v == hp.quniform or v == hp.qlognormal or v == hp.qnormal:
+                self.integer_params.add(k)
+            pass
         self.param_vals_list = []
         self.preds_list = []
         self.scores_list = []
@@ -152,7 +162,11 @@ class BayesSearch:
         if self.eval_round > 0 and self.eval_round % self.dump_round == 0:
             self.dump_result()
         self.eval_round += 1
+        for k in param_dic:
+            if k in self.integer_params:
+                param_dic[k] = int(param_dic[k])
         print param_dic
+
         model = self.wrapper_class(param_dic)
         scores, preds = self.experiment.cross_validation(model)
         if self.refit_pred_out:
