@@ -7,6 +7,7 @@ pandas
 scipy
 numpy
 cPickle
+hyperopt
 
 # Extra requirements
 xgboost
