@@ -2,6 +2,7 @@
 __author__ = 'zhenouyang'
 import os
 import cPickle as cp
+import copy
 from utils.config_utils import Config
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
@@ -106,14 +107,15 @@ def pca_extend(train, test, components=10):
     dic = {'ID': train_ids, 'TARGET' : targets}
     for i in xrange(train1.shape[1]):
         dic['pca_'+str(i)] = train1[:, i]
+    columns = [col+'' for col in train0.columns.values]
     for i in xrange(train0.shape[1]):
-        dic[train.columns[i+1]] = train0[:, i]
+        dic[columns[i]] = train0[columns[i]]
     train1 = pd.DataFrame(dic)
     dic = {'ID': test_ids}
     for i in xrange(test1.shape[1]):
         dic['pca_'+str(i)] = test1[:, i]
     for i in xrange(test0.shape[1]):
-        dic[test.columns[i+1]] = test0[:, i]
+        dic[columns[i]] = test0[columns[i]]
     test1 = pd.DataFrame(dic)
     return train1, test1
 

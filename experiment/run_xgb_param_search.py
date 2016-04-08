@@ -10,7 +10,8 @@ import cPickle as cp
 from hyperopt import hp
 
 
-def xgb_bayes_search(exp):
+def xgb_bayes_search(train_fname, test_fname, out_fname_prefix='xgb-bayes'):
+    exp = ExperimentL1(train_fname=train_fname, test_fname=test_fname)
     param_keys = ['model_type', 'max_depth', 'min_child_weight', 'subsample', 'colsample_bytree',
                   'learning_rate', 'silent', 'objective', 'nthread', 'n_estimators', 'seed']
     param_space = {'model_type': XGBClassifier, 'max_depth': hp.quniform('max_depth', 4, 9, 1),
@@ -21,13 +22,12 @@ def xgb_bayes_search(exp):
                    'silent': 1, 'objective': 'binary:logistic',
                    'nthread': 8, 'n_estimators': 580, 'seed': hp.choice('seed', [1234,53454,6676,12893])}
     bs = param_search.BayesSearch(SklearnModel, exp, param_keys, param_space,
-                                  cv_out='xgb2-bayes-scores.pkl',
-                                  cv_pred_out='xgb2-bayes-preds.pkl',
-                                  refit_pred_out='xgb2-bayes-refit-preds.pkl',
+                                  cv_out=out_fname_prefix+'-scores.pkl',
+                                  cv_pred_out=out_fname_prefix+'-preds.pkl',
+                                  refit_pred_out=out_fname_prefix+'refit-preds.pkl',
                                   dump_round=10)
     best = bs.search_by_cv()
-    #bs.fit_full_set_and_predict('xgb-bayes-refit-preds.pkl')
-    param_search.write_cv_res_csv('xgb2-bayes-scores.pkl', 'xgb2-bayes-scores.csv')
+    param_search.write_cv_res_csv(bs.cv_out, bs.cv_out.replace('.pkl', '.csv'))
     return best
 
 
@@ -60,17 +60,19 @@ def xgb_submmision(exp, param=None):
 def xgb_param_avg_submission(exp):
     score_fname = os.path.join(Config.get_string('data.path'), 'output', 'xgb-bayes-scores.pkl')
     refit_pred_fname =os.path.join(Config.get_string('data.path'), 'output', 'xgb-bayes-refit-preds.pkl')
-    preds = get_top_model_avg_preds(score_fname, refit_pred_fname, topK=5)
-    submission_fname = os.path.join(Config.get_string('data.path'), 'output', 'avg-xgb-bayes-refit-preds5.csv')
+    preds = get_top_model_avg_preds(score_fname, refit_pred_fname, topK=30)
+    submission_fname = os.path.join(Config.get_string('data.path'), 'submission', 'avg-xgb-bayes-refit-preds30.csv')
     save_submissions(submission_fname, exp.test_id, preds)
 
 
 if __name__=='__main__':
-    exp = ExperimentL1()
-    param = None
+    #exp = ExperimentL1(train_fname='scaled_extend_train.csv', test_fname='scaled_extend_test.csv')
+    #param = None
     #param = xgb_grid_search(exp)
     #param = xgb_bayes_search(exp)
-    xgb_submmision(exp, param)
+    #xgb_submmision(exp, param)
     #xgb_param_avg_submission(exp)
+    xgb_bayes_search('pca10_and_standard_train.csv', 'pca10_and_standard_test.csv', 'xgb-bayes-pca10-and-standard')
+    pass
 
 

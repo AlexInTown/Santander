@@ -42,9 +42,11 @@ def rf_bayes_search(train_fname, test_fname, out_fname_prefix='sk-rf-bayes'):
 if __name__ == '__main__':
     rf_bayes_search('scaled_extend_train.csv', 'scaled_extend_test.csv', 'sk-rf-bayes-scaled-extend')
     rf_bayes_search('standard_extend_train.csv', 'standard_extend_test.csv', 'sk-rf-bayes-standard-extend')
-    rf_bayes_search('raw_extend_train.csv', 'raw_extend_test.csv', 'sk-rf-bayes-raw-extend')
-    rf_bayes_search('pca_train_100.csv', 'pca_test_100.csv', 'sk-rf-bayes-pca-100')
-    rf_bayes_search('pca_train_200.csv', 'pca_test_200.csv', 'sk-rf-bayes-pca-200')
+    rf_bayes_search('raw_train.csv', 'raw_test.csv', 'sk-rf-bayes-raw')
+    rf_bayes_search('pca100_train.csv', 'pca100_test.csv', 'sk-rf-bayes-pca100')
+    rf_bayes_search('pca200_train.csv', 'pca200_test.csv', 'sk-rf-bayes-pca200')
+    rf_bayes_search('pca10_and_standard_train.csv', 'pca10_and_standard_test.csv', 'sk-rf-bayes-pca10-standard')
+    rf_bayes_search('pca20_and_standard_train.csv', 'pca20_and_standard_train.csv', 'sk-rf-bayes-pca20-standard')
 
 
 
