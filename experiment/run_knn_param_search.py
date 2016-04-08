@@ -12,7 +12,7 @@ from hyperopt import hp
 def knn_bayes_search(train_fname, test_fname, out_fname_prefix):
     exp = ExperimentL1(train_fname=train_fname, test_fname=test_fname)
     param_keys = ['model_type', 'n_neighbors', 'weights',
-                  'algorithm', 'leaf_size', 'metric', 'p', 'n_jobs']
+                  'algorithm', 'leaf_size', 'metric', 'p']#, 'n_jobs']
     param_space = {'model_type': KNeighborsClassifier,
                    'n_neighbors': hp.quniform('neighbors', 1, 100, 1),
                    'weights': hp.choice('weights',  ['uniform', 'distance']),
@@ -20,7 +20,7 @@ def knn_bayes_search(train_fname, test_fname, out_fname_prefix):
                    #'algorithm': 'ball_tree',
                    'leaf_size': 30, 'metric': 'minkowski',
                    'p': hp.quniform('n_neighbors', 1, 2, 1),
-                   'n_jobs': 4
+                   #'n_jobs': 4
                    }
 
     bs = param_search.BayesSearch(SklearnModel, exp, model_param_keys=param_keys, model_param_space=param_space,
@@ -28,7 +28,7 @@ def knn_bayes_search(train_fname, test_fname, out_fname_prefix):
                      cv_pred_out=out_fname_prefix+'-preds.pkl',
                      refit_pred_out=out_fname_prefix+'refit-preds.pkl',
                      dump_round=10)
-    bs.search_by_cv()
+    bs.search_by_cv(max_evals=100)
     param_search.write_cv_res_csv(bs.cv_out, bs.cv_out.replace('.pkl', '.csv'))
 
 
@@ -44,4 +44,7 @@ def knn_grid_search():
 
 if __name__=='__main__':
     #knn_grid_search()
-    knn_bayes_search()
+    #knn_bayes_search('pca100_train.csv', 'pca100_test.csv', 'sk-knn-bayes-pca100')
+    #knn_bayes_search('pca200_train.csv', 'pca200_test.csv', 'sk-knn-bayes-pca200')
+    #knn_bayes_search('pca10_and_standard_train.csv', 'pca10_and_standard_test.csv', 'sk-knn-bayes-pca10-standard')
+    knn_bayes_search('pca20_and_standard_train.csv', 'pca20_and_standard_train.csv', 'sk-knn-bayes-pca20-standard')

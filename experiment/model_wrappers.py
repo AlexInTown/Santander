@@ -88,7 +88,8 @@ class LasagneModel:
         import lasagne
         import theano.tensor as T
         self.model_params = model_params
-        l_in = lasagne.layers.InputLayer(shape=(model_params['batch_size'], model_params['dim']), input_var=T.matrix)
+        self.batch_size = model_params['batch_size']
+        l_in = lasagne.layers.InputLayer(shape=(self.batch_size, model_params['in_size']), input_var=T.matrix)
 
         # Apply 20% dropout to the input data:
         l_in_drop = lasagne.layers.DropoutLayer(l_in, p=model_params['in_dropout'])
@@ -96,20 +97,20 @@ class LasagneModel:
         # Add a fully-connected layer of 800 units, using the linear rectifier, and
         # initializing weights with Glorot's scheme (which is the default anyway):
         l_hid1 = lasagne.layers.DenseLayer(
-                l_in_drop, num_units=model_params['h_size'],
+                l_in_drop, num_units=model_params['hid_size'],
                 nonlinearity=model_params['nonlinearity'],
                 W=lasagne.init.GlorotUniform())
 
         # We'll now add dropout of 50%:
-        l_hid1_drop = lasagne.layers.DropoutLayer(l_hid1, p=model_params['h_dropout'])
+        l_hid1_drop = lasagne.layers.DropoutLayer(l_hid1, p=model_params['hid_dropout'])
 
         # Another 800-unit layer:
         l_hid2 = lasagne.layers.DenseLayer(
-                l_hid1_drop, num_units=model_params['h_size'],
+                l_hid1_drop, num_units=model_params['hid_size'],
                 nonlinearity=model_params['nonlinearity'])
 
         # 50% dropout again:
-        l_hid2_drop = lasagne.layers.DropoutLayer(l_hid2, p=model_params['h_dropout'])
+        l_hid2_drop = lasagne.layers.DropoutLayer(l_hid2, p=model_params['hid_dropout'])
 
         # Finally, we'll add the fully-connected output layer, of 10 softmax units:
         l_out = lasagne.layers.DenseLayer(
@@ -151,7 +152,7 @@ class LasagneModel:
         # Descent (SGD) with Nesterov momentum, but Lasagne offers plenty more.
         params = lasagne.layers.get_all_params(self.network, trainable=1)
         updates = lasagne.updates.nesterov_momentum(
-                loss, params, learning_rate=0.01, momentum=0.9)
+                loss, params, learning_rate=self.model_params['learning_rate'], momentum=0.9)
 
         # Create a loss expression for validation/testing. The crucial difference
         # here is that we do a deterministic forward pass through the network,
@@ -178,7 +179,7 @@ class LasagneModel:
             train_err = 0
             train_batches = 0
             start_time = time.time()
-            for batch in self.iterate_minibatches(X, y, 500, shuffle=True):
+            for batch in self.iterate_minibatches(X, y, self.batch_size, shuffle=1):
                 inputs, targets = batch
                 train_err += self.train_fn(inputs, targets)
                 train_batches += 1
@@ -193,7 +194,7 @@ class LasagneModel:
                 val_err = 0
                 val_acc = 0
                 val_batches = 0
-                for batch in self.iterate_minibatches(X_val, y_val, 500, shuffle=False):
+                for batch in self.iterate_minibatches(X_val, y_val, self.batch_size, shuffle=1):
                     inputs, targets = batch
                     err, acc = self.val_fn(inputs, targets)
                     val_err += err
