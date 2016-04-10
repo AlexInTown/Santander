@@ -4,7 +4,7 @@ __author__ = 'AlexInTown'
 # -*- coding: utf-8 -*-
 __author__ = 'AlexInTown'
 import os
-from sklearn.svm import LinearSVC
+from sklearn.svm import LinearSVR
 from experiment.stacking.experiment_l1 import ExperimentL1
 import param_search
 from model_wrappers import SklearnModel
@@ -17,9 +17,10 @@ def svc_bayes_search(train_fname, test_fname, out_fname_prefix='sk-svc-bayes'):
     param_keys = ['model_type', 'C', 'loss', 'penalty', 'tol', 'class_weight',
                   'random_state']
 
-    param_space = {'model_type': LinearSVC, 'C': hp.uniform('c', 0.1, 3),
+    param_space = {'model_type': LinearSVR, 'C': hp.uniform('c', 0.1, 3),
                    'loss': hp.choice('loss', ['hinge', 'squared_hinge']),
-                   'penalty': hp.choice('pen', ['l1', 'l2']),
+                   #'penalty': hp.choice('pen', ['l1', 'l2']),
+                   'penalty': 'l2',
                    'tol': hp.uniform('tol', 1e-6, 3e-4),
                    'class_weight': hp.choice('cls_w', [None, 'balanced']),
                    'random_state': hp.choice('seed', [1234, 53454, 6676, 12893])}

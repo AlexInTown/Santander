@@ -89,7 +89,9 @@ class LasagneModel:
         import theano.tensor as T
         self.model_params = model_params
         self.batch_size = model_params['batch_size']
-        l_in = lasagne.layers.InputLayer(shape=(self.batch_size, model_params['in_size']), input_var=T.matrix)
+        self.var_input = T.matrix('var_input')
+        self.var_targets = T.ivector('var_targets')
+        l_in = lasagne.layers.InputLayer(shape=(None, model_params['in_size']), input_var=self.var_input)
 
         # Apply 20% dropout to the input data:
         l_in_drop = lasagne.layers.DropoutLayer(l_in, p=model_params['in_dropout'])
@@ -136,13 +138,15 @@ class LasagneModel:
 
     def fit(self, X, y):
         """Fit model."""
+        X = np.asarray(X)
+        y = np.asarray(y)
         import lasagne
         import theano
         import theano.tensor as T
         # Create a loss expression for training, i.e., a scalar objective we want
         # to minimize (for multi-class problem, it is the cross-entropy loss):
         prediction = lasagne.layers.get_output(self.network)
-        loss = lasagne.objectives.binary_crossentropy(prediction, T.vector)
+        loss = lasagne.objectives.binary_crossentropy(prediction, self.var_targets)
         loss = loss.mean()
 
         # TODO We could add some weight decay as well here, see lasagne.regularization.
@@ -158,7 +162,7 @@ class LasagneModel:
         # here is that we do a deterministic forward pass through the network,
         # disabling dropout layers.
         self.test_prediction = lasagne.layers.get_output(self.network, deterministic=True)
-        test_loss = lasagne.objectives.binary_crossentropy(self.test_prediction, T.vector)
+        test_loss = lasagne.objectives.binary_crossentropy(self.test_prediction, self.var_targets)
         test_loss = test_loss.mean()
         # As a bonus, also create an expression for the classification accuracy:
         #test_acc = T.mean(T.eq(T.argmax(test_prediction, axis=1), T.vector),
@@ -166,10 +170,10 @@ class LasagneModel:
 
         # Compile a function performing a training step on a mini-batch (by giving
         # the updates dictionary) and returning the corresponding training loss:
-        self.train_fn = theano.function([T.vector, T.vector], loss, updates=updates)
+        self.train_fn = theano.function([self.var_input,self.var_targets], loss, updates=updates, allow_input_downcast=1)
 
         # Compile a second function computing the validation loss:
-        self.val_fn = theano.function([T.vector, T.vector], test_loss)
+        self.val_fn = theano.function([self.var_input, self.var_targets], test_loss)
 
         # Finally, launch the training loop.
         print("Starting training...")
@@ -181,7 +185,7 @@ class LasagneModel:
             start_time = time.time()
             for batch in self.iterate_minibatches(X, y, self.batch_size, shuffle=1):
                 inputs, targets = batch
-                train_err += self.train_fn(inputs, targets)
+                train_err += self.train_fn(inputs, np.transpose(targets))
                 train_batches += 1
             # Then we print the results for this epoch:
             print("Epoch {} of {} took {:.3f}s".format(
@@ -219,9 +223,10 @@ class LasagneModel:
         C : array, shape = (n_samples,)
             Returns predicted values.
         """
+        X = np.asaray(X)
         import theano
         import theano.tensor as T
-        test_fn = theano.function([T.matrix], self.test_prediction)
+        test_fn = theano.function([self.var_input, self.var_targets], self.test_prediction)
         return test_fn(X)
 
 

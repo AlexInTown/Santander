@@ -18,7 +18,7 @@ def nn_bayes_search(train_fname, test_fname, out_fname_prefix='nn-bayes'):
                    'hid_dropout': hp.uniform('hid_drop',  0.5, 1.0),
                    'nonlinearity': hp.choice('nonlinear',  [sigmoid, tanh, rectify, leaky_rectify]),
                    'learning_rate': hp.uniform('lr', 0.0001, 0.01),
-                   'num_epochs': hp.quniform('epochs', )
+                   'num_epochs': hp.quniform('epochs', 300, 1000, 100),
                    }
 
     bs = param_search.BayesSearch(LasagneModel, exp, model_param_keys=param_keys, model_param_space=param_space,
@@ -33,3 +33,7 @@ def nn_bayes_search(train_fname, test_fname, out_fname_prefix='nn-bayes'):
 def main():
     nn_bayes_search('standard_train.csv', 'standard_test.csv', 'nn-standard-bayes')
     pass
+
+
+if __name__=='__main__':
+    main()

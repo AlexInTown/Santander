@@ -2,7 +2,7 @@
     <profiles>
         <profile>
             <!-- this profile is for oyz windows platform -->
-            <id>oyz_win</id>
+            <id>oyz_win8</id>
             <activation>
                 <os>
                     <family>windows</family>
@@ -19,10 +19,11 @@
         </profile>
         <profile>
             <!-- this profile is for oyz windows platform -->
-            <id>oyz_win1</id>
+            <id>oyz_win7</id>
             <activation>
                 <os>
                     <family>windows</family>
+                    <version>7-6.1.7601</version>
                 </os>
             </activation>
             <properties>
@@ -50,6 +51,7 @@
                 <!-- <data.path>/submission/ for submissions  -->
             </properties>
         </profile>
+
 
         <!-- add your custom profiles here  -->
     </profiles>
