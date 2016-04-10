@@ -24,7 +24,7 @@ class ExperimentL1:
         # load train data
         train = pd.read_csv(train_fname)
         train.sort(columns='ID', inplace=1)
-        self.train_id = train.values
+        self.train_id = train.ID.values
         self.train_y = train.TARGET.values
         self.train_x = train.drop(['ID', 'TARGET'], axis=1)
         # load test data
