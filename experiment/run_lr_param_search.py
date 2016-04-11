@@ -34,7 +34,7 @@ def lr_bayes_search(train_fname, test_fname, out_fname_prefix='sk-svc-bayes'):
                                   cv_out=out_fname_prefix+'-scores.pkl',
                                   cv_pred_out=out_fname_prefix+'-preds.pkl',
                                   refit_pred_out=out_fname_prefix+'refit-preds.pkl',
-                                  dump_round=10)
+                                  dump_round=1)
     best = bs.search_by_cv(max_evals=60)
     param_search.write_cv_res_csv(bs.cv_out, bs.cv_out.replace('.pkl', '.csv'))
     return best

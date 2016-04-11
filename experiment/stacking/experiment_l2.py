@@ -46,7 +46,13 @@ class ExperimentL2:
             prefix = data['prefix']
             top_k = data['top_k']
             is_avg = data['is_avg']
-            preds, refit_preds = get_top_cv_and_test_preds(prefix, top_k=top_k)
+            try:
+                preds, refit_preds = get_top_cv_and_test_preds(prefix, top_k=top_k)
+            except Exception, e:
+                print e
+                print "Error loading L1 experiment result of expriment outfile prefix '{}'".format(prefix)
+                continue
+
             if is_avg:
                 preds = preds.mean(axis=1)
                 refit_preds = refit_preds.mean(axis=1)
