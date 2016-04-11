@@ -14,6 +14,7 @@ a separate repository: https://github.com/Lasagne/Recipes
 """
 
 from __future__ import print_function
+from utils.config_utils import Config
 
 import sys
 import os
@@ -46,6 +47,7 @@ def load_dataset():
     import gzip
 
     def load_mnist_images(filename):
+        filename = os.path.join(Config.get_string('data.path'), 'input', filename)
         if not os.path.exists(filename):
             download(filename)
         # Read the inputs in Yann LeCun's binary format.
@@ -60,6 +62,7 @@ def load_dataset():
         return data / np.float32(256)
 
     def load_mnist_labels(filename):
+        filename = os.path.join(Config.get_string('data.path'), 'input', filename)
         if not os.path.exists(filename):
             download(filename)
         # Read the labels in Yann LeCun's binary format.

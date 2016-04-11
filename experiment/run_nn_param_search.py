@@ -14,11 +14,11 @@ def nn_bayes_search(train_fname, test_fname, out_fname_prefix='nn-bayes'):
     param_space = {'in_size': exp.train_x.shape[1],
                    'hid_size': hp.quniform('hid', 50, 500, 25),
                    'batch_size': hp.quniform('bsize', 50, 1000, 50),
-                   'in_dropout': hp.uniform('in_drop',  0.5, 1.0),
-                   'hid_dropout': hp.uniform('hid_drop',  0.5, 1.0),
+                   'in_dropout': hp.uniform('in_drop',  0.0, 0.5),
+                   'hid_dropout': hp.uniform('hid_drop',  0.0, 0.6),
                    'nonlinearity': hp.choice('nonlinear',  [sigmoid, tanh, rectify, leaky_rectify]),
                    'learning_rate': hp.uniform('lr', 0.0001, 0.01),
-                   'num_epochs': hp.quniform('epochs', 300, 1000, 100),
+                   'num_epochs': hp.quniform('epochs', 100, 1000, 100),
                    }
 
     bs = param_search.BayesSearch(LasagneModel, exp, model_param_keys=param_keys, model_param_space=param_space,
