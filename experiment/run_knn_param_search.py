@@ -14,7 +14,7 @@ def knn_bayes_search(train_fname, test_fname, out_fname_prefix):
     param_keys = ['model_type', 'n_neighbors', 'weights',
                   'algorithm', 'leaf_size', 'metric', 'p']#, 'n_jobs']
     param_space = {'model_type': KNeighborsClassifier,
-                   'n_neighbors': hp.quniform('neighbors', 1, 100, 1),
+                   'n_neighbors': hp.quniform('neighbors', 101, 1024, 1),
                    'weights': hp.choice('weights',  ['uniform', 'distance']),
                    'algorithm': hp.choice('algorithm',  ['ball_tree', 'kd_tree']),
                    #'algorithm': 'ball_tree',
@@ -44,7 +44,8 @@ def knn_grid_search():
 
 if __name__=='__main__':
     #knn_grid_search()
-    #knn_bayes_search('pca100_train.csv', 'pca100_test.csv', 'sk-knn-bayes-pca100')
-    #knn_bayes_search('pca200_train.csv', 'pca200_test.csv', 'sk-knn-bayes-pca200')
-    #knn_bayes_search('pca10_and_standard_train.csv', 'pca10_and_standard_test.csv', 'sk-knn-bayes-pca10-standard')
-    knn_bayes_search('pca20_and_standard_train.csv', 'pca20_and_standard_train.csv', 'sk-knn-bayes-pca20-standard')
+    #knn_bayes_search('pca100_train.csv', 'pca100_test.csv', 'sk-knn2-bayes-pca100')
+    #knn_bayes_search('pca200_train.csv', 'pca200_test.csv', 'sk-knn2-bayes-pca200')
+    #knn_bayes_search('pca10_and_standard_train.csv', 'pca10_and_standard_test.csv', 'sk-knn2-bayes-pca10-standard')
+    knn_bayes_search('pca20_and_standard_train.csv', 'pca20_and_standard_test.csv', 'sk-knn2-bayes-pca20-standard')
+    pass
