@@ -4,6 +4,8 @@ from experiment.stacking.experiment_l2 import ExperimentL2, get_top_cv_and_test_
 from experiment.stacking.experiment_l1 import ExperimentL1
 from model_wrappers import SklearnModel
 from xgboost.sklearn import XGBClassifier
+from utils.config_utils import Config
+from utils.submit_utils import get_top_model_avg_preds, save_submissions
 from sklearn.linear_model import LogisticRegression
 import param_search
 import cPickle as cp
@@ -18,23 +20,23 @@ def get_l2_experiment():
         {'prefix': 'nn-standard-bayes', 'top_k': 5, 'is_avg': 0},
         
         # logistic regression results
-        {'prefix': 'sk-lr-bayes-pca20-standard', 'top_k': 5, 'is_avg': 0},
-        {'prefix': 'sk-lr-bayes-pca10-standard', 'top_k': 5, 'is_avg': 0},
-        {'prefix': 'sk-lr-bayes-pca200', 'top_k': 5, 'is_avg': 0},
-        {'prefix': 'sk-lr-bayes-pca100', 'top_k': 5, 'is_avg': 0},
-        {'prefix': 'sk-lr-bayes-raw-extend', 'top_k': 5, 'is_avg': 0},
-        {'prefix': 'sk-lr-bayes-standard-extend', 'top_k': 5, 'is_avg': 0},
-        {'prefix': 'sk-lr-bayes-scaled-extend', 'top_k': 5, 'is_avg': 0},
+        # {'prefix': 'sk-lr-bayes-pca20-standard', 'top_k': 5, 'is_avg': 0},
+        # {'prefix': 'sk-lr-bayes-pca10-standard', 'top_k': 5, 'is_avg': 0},
+        # {'prefix': 'sk-lr-bayes-pca200', 'top_k': 5, 'is_avg': 0},
+        # {'prefix': 'sk-lr-bayes-pca100', 'top_k': 5, 'is_avg': 0},
+        # {'prefix': 'sk-lr-bayes-raw-extend', 'top_k': 5, 'is_avg': 0},
+        {'prefix': 'sk-lr-bayes-standard-extend', 'top_k': 5, 'is_avg': 1},
+        {'prefix': 'sk-lr-bayes-scaled-extend', 'top_k': 5, 'is_avg': 1},
 
         # xgboost results
-        {'prefix': 'xgb-bayes-pca10-and-standard', 'top_k': 15, 'is_avg': 0},
+        #{'prefix': 'xgb-bayes-pca10-and-standard', 'top_k': 15, 'is_avg': 0},
         {'prefix': 'xgb-bayes', 'top_k': 30, 'is_avg': 0},
 
         # knn results
-        {'prefix': 'sk-knn-bayes-pca100', 'top_k': 10, 'is_avg': 0},
-        {'prefix': 'sk-knn-bayes-pca200', 'top_k': 5, 'is_avg': 0},
-        {'prefix': 'sk-knn-bayes-pca10-standard', 'top_k': 5, 'is_avg': 0},
-        {'prefix': 'sk-knn-bayes-pca20-standard', 'top_k': 5, 'is_avg': 0},
+        {'prefix': 'sk-knn-bayes-pca100', 'top_k': 5, 'is_avg': 1},
+        {'prefix': 'sk-knn-bayes-pca200', 'top_k': 5, 'is_avg': 1},
+        {'prefix': 'sk-knn-bayes-pca10-standard', 'top_k': 5, 'is_avg': 1},
+        {'prefix': 'sk-knn-bayes-pca20-standard', 'top_k': 5, 'is_avg': 1},
 
         # random forest results
         {'prefix': 'sk-rf-bayes-pca20-standard', 'top_k': 5, 'is_avg': 0},
@@ -61,7 +63,7 @@ def xgb_model_stacking(exp_l2):
                    'silent': 1, 'objective': 'binary:logistic',
                    'nthread': 8, 'n_estimators': 580, 'seed': hp.choice('seed', [1234,53454,6676,12893])}
     # l2 model output
-    out_fname_prefix = 'stacking-xgb'
+    out_fname_prefix = 'stacking-xgb2'
     bs = param_search.BayesSearch(SklearnModel, exp_l2, param_keys, param_space,
                                   cv_out=out_fname_prefix+'-scores.pkl',
                                   cv_pred_out=out_fname_prefix+'-preds.pkl',
@@ -120,7 +122,23 @@ def nn_model_stacking(exp_l2):
     return best
 
 
+def save_l2_submission(prefix='stacking-xgb'):
+    import os
+    exp = ExperimentL1()
+    score_fname = os.path.join(Config.get_string('data.path'), 'output', prefix+'-scores.pkl')
+    refit_pred_fname =os.path.join(Config.get_string('data.path'), 'output', prefix+'-refit-preds.pkl')
+    topK = 30
+    preds = get_top_model_avg_preds(score_fname, refit_pred_fname, topK=topK)
+    submission_fname = os.path.join(Config.get_string('data.path'), 'submission',
+                                    prefix+'-refit-preds{}.csv'.format(topK))
+    save_submissions(submission_fname, exp.test_id, preds)
+
 
 def main():
     exp_l2 = get_l2_experiment()
     xgb_model_stacking(exp_l2)
+
+if __name__ == '__main__':
+    #main()
+    save_l2_submission()
+    pass

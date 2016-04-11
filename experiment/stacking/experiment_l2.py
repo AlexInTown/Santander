@@ -28,7 +28,9 @@ def get_top_cv_and_test_preds(out_fname_prefix, top_k=10):
     idxs = np.arange(len(scores))
     mscores = scores.mean(axis=1)
     idxs = sorted(idxs, key=lambda x:mscores[x], reverse=1)[:top_k]
-    return np.asarray(preds)[idxs], np.asarray(refit_preds)[idxs]
+    preds = np.transpose(np.asarray(preds)[idxs])
+    refit_preds = np.transpose(np.asarray(refit_preds)[idxs])
+    return preds, refit_preds
 
 
 class ExperimentL2:
@@ -46,19 +48,22 @@ class ExperimentL2:
             prefix = data['prefix']
             top_k = data['top_k']
             is_avg = data['is_avg']
+            print '- Loading {} results of {} (is_avg={})'.format(top_k, prefix,is_avg),
             try:
                 preds, refit_preds = get_top_cv_and_test_preds(prefix, top_k=top_k)
+                print 'SUCCESS'
             except Exception, e:
-                print e
-                print "Error loading L1 experiment result of expriment outfile prefix '{}'".format(prefix)
+                print 'FAIL', e
                 continue
 
             if is_avg:
                 preds = preds.mean(axis=1)
+                preds = np.reshape(preds, (len(preds), 1))
                 refit_preds = refit_preds.mean(axis=1)
-            if self.train_x:
-                self.train_x = np.hstack(self.train_x, preds)
-                self.test_x = np.hstack(self.test_x, refit_preds)
+                refit_preds = np.reshape(refit_preds, (len(refit_preds), 1))
+            if self.train_x is not None:
+                self.train_x = np.hstack([self.train_x, preds])
+                self.test_x = np.hstack([self.test_x, refit_preds])
             else:
                 self.train_x = preds
                 self.test_x = refit_preds
@@ -72,9 +77,9 @@ class ExperimentL2:
         i = 0
         for train_idx, test_idx in kfold:
             print (' --------- fold {0} ---------- '.format(i))
-            train_x = self.train_x.iloc[train_idx]
+            train_x = self.train_x[train_idx]
             train_y = self.train_y[train_idx]
-            test_x = self.train_x.iloc[test_idx]
+            test_x = self.train_x[test_idx]
             test_y = self.train_y[test_idx]
             model.fit(train_x, train_y)
             pred = model.predict(test_x)
