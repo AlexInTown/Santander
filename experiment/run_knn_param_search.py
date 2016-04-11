@@ -26,7 +26,7 @@ def knn_bayes_search(train_fname, test_fname, out_fname_prefix):
     bs = param_search.BayesSearch(SklearnModel, exp, model_param_keys=param_keys, model_param_space=param_space,
                      cv_out=out_fname_prefix+'-scores.pkl',
                      cv_pred_out=out_fname_prefix+'-preds.pkl',
-                     refit_pred_out=out_fname_prefix+'refit-preds.pkl',
+                     refit_pred_out=out_fname_prefix+'-refit-preds.pkl',
                      dump_round=10)
     bs.search_by_cv(max_evals=100)
     param_search.write_cv_res_csv(bs.cv_out, bs.cv_out.replace('.pkl', '.csv'))
