@@ -67,12 +67,13 @@ def xgb_param_avg_submission(exp):
 
 if __name__=='__main__':
     #exp = ExperimentL1(train_fname='scaled_extend_train.csv', test_fname='scaled_extend_test.csv')
+    param_search.write_cv_res_csv('xgb-bayes-scores.pkl', 'xgb-bayes-scores.csv')
     #param = None
     #param = xgb_grid_search(exp)
     #param = xgb_bayes_search(exp)
     #xgb_submmision(exp, param)
     #xgb_param_avg_submission(exp)
-    xgb_bayes_search('pca10_and_standard_train.csv', 'pca10_and_standard_test.csv', 'xgb-bayes-pca10-and-standard')
+    #xgb_bayes_search('pca10_and_standard_train.csv', 'pca10_and_standard_test.csv', 'xgb-bayes-pca10-and-standard')
     pass
 
 

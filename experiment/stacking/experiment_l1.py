@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
+import time
 import numpy as np
 import pandas as pd
 import sklearn.cross_validation as cross_validation
@@ -40,7 +41,8 @@ class ExperimentL1:
         preds = np.zeros(len(self.train_y))
         i = 0
         for train_idx, test_idx in kfold:
-            print (' --------- fold {0} ---------- '.format(i))
+            print ' - fold {0}  '.format(i),
+            start = time.time()
             train_x = self.train_x.iloc[train_idx]
             train_y = self.train_y[train_idx]
             test_x = self.train_x.iloc[test_idx]
@@ -50,6 +52,8 @@ class ExperimentL1:
             score = metrics.roc_auc_score(test_y, pred)
             preds[test_idx] = pred
             scores.append(score)
+            end = time.time()
+            print (' score:{}  time:{}s.'.format(score, end - start))
             i += 1
         scores = np.asarray(scores)
         print scores.mean(), scores.std()

@@ -83,7 +83,7 @@ def lr_model_stacking(exp_l2):
                    'penalty': 'l2',
                    'tol': hp.uniform('tol', 1e-6, 3e-4),
                    'solver': hp.choice('solver', ['liblinear', 'lbfgs','newton-cg']),
-                   'class_weight': hp.choice('cls_w', [None, 'auto']),
+                   'class_weight': hp.choice('cls_w', [None, 'balanced']),
                    'random_state': hp.choice('seed', [1234, 53454, 6676, 12893]),
                    }
     out_fname_prefix = "stacking-sk-lr"
@@ -92,7 +92,7 @@ def lr_model_stacking(exp_l2):
                                   cv_pred_out=out_fname_prefix+'-preds.pkl',
                                   refit_pred_out=out_fname_prefix+'refit-preds.pkl',
                                   dump_round=10)
-    best = bs.search_by_cv(max_evals=60)
+    best = bs.search_by_cv(max_evals=101)
     param_search.write_cv_res_csv(bs.cv_out, bs.cv_out.replace('.pkl', '.csv'))
     return best
 
@@ -103,12 +103,12 @@ def nn_model_stacking(exp_l2):
     param_keys = ['in_size', 'hid_size', 'batch_size', 'in_dropout',
                   'hid_dropout', 'nonlinearity', 'learning_rate', 'num_epochs']
     param_space = {'in_size': exp_l2.train_x.shape[1],
-                   'hid_size': hp.quniform('hid', 50, 500, 25),
+                   'hid_size': hp.quniform('hid', 10, 200, 25),
                    'batch_size': hp.quniform('bsize', 50, 1000, 50),
                    'in_dropout': hp.uniform('in_drop',  0.0, 0.5),
                    'hid_dropout': hp.uniform('hid_drop',  0.0, 0.6),
                    'nonlinearity': hp.choice('nonlinear',  [sigmoid, tanh, rectify, leaky_rectify]),
-                   'learning_rate': hp.uniform('lr', 0.0001, 0.01),
+                   'learning_rate': hp.uniform('lr', 0.00001, 0.01),
                    'num_epochs': hp.quniform('epochs', 100, 1000, 100),
                    }
     out_fname_prefix = 'stacking-nn'
@@ -127,7 +127,7 @@ def save_l2_submission(prefix='stacking-xgb'):
     exp = ExperimentL1()
     score_fname = os.path.join(Config.get_string('data.path'), 'output', prefix+'-scores.pkl')
     refit_pred_fname =os.path.join(Config.get_string('data.path'), 'output', prefix+'-refit-preds.pkl')
-    topK = 30
+    topK = 1
     preds = get_top_model_avg_preds(score_fname, refit_pred_fname, topK=topK)
     submission_fname = os.path.join(Config.get_string('data.path'), 'submission',
                                     prefix+'-refit-preds{}.csv'.format(topK))
@@ -136,9 +136,11 @@ def save_l2_submission(prefix='stacking-xgb'):
 
 def main():
     exp_l2 = get_l2_experiment()
-    xgb_model_stacking(exp_l2)
+    #xgb_model_stacking(exp_l2)
+    #lr_model_stacking(exp_l2)
+    nn_model_stacking(exp_l2)
 
 if __name__ == '__main__':
     #main()
-    save_l2_submission()
+    save_l2_submission('stacking-nn')
     pass

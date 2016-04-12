@@ -188,9 +188,9 @@ class LasagneModel:
                 train_err += self.train_fn(inputs, targets)
                 train_batches += 1
             # Then we print the results for this epoch:
-            print("Epoch {} of {} took {:.3f}s".format(
-                    epoch + 1, self.model_params['num_epochs'], time.time() - start_time))
-            print("  training loss:\t\t{:.6f}".format(train_err / train_batches))
+            # print("Epoch {} of {} took {:.3f}s".format(
+            #         epoch + 1, self.model_params['num_epochs'], time.time() - start_time))
+            # print("  training loss:\t\t{:.6f}".format(train_err / train_batches))
             # And a full pass over the validation data:
             X_val = None
             y_val = None
@@ -208,9 +208,9 @@ class LasagneModel:
                     val_err += err
                     val_acc += acc
                     val_batches += 1
-                print("  validation loss:\t\t{:.6f}".format(val_err / val_batches))
-                print("  validation accuracy:\t\t{:.2f} %".format(
-                    val_acc / val_batches * 100))
+                # print("  validation loss:\t\t{:.6f}".format(val_err / val_batches))
+                # print("  validation accuracy:\t\t{:.2f} %".format(
+                #     val_acc / val_batches * 100))
                 pass
         pass
 
@@ -230,7 +230,7 @@ class LasagneModel:
         X = np.asarray(X)
         import theano
         import theano.tensor as T
-        test_fn = theano.function([self.var_input], self.test_prediction)
+        test_fn = theano.function([self.var_input], self.test_prediction, allow_input_downcast=1)
         return test_fn(X)[:, 1]
 
 

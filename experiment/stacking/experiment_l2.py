@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
+import time
 import numpy as np
 import cPickle as cp
 import sklearn.cross_validation as cross_validation
@@ -76,7 +77,8 @@ class ExperimentL2:
         preds = np.zeros(len(self.train_y))
         i = 0
         for train_idx, test_idx in kfold:
-            print (' --------- fold {0} ---------- '.format(i))
+            print ' - fold {0}  '.format(i),
+            start = time.time()
             train_x = self.train_x[train_idx]
             train_y = self.train_y[train_idx]
             test_x = self.train_x[test_idx]
@@ -86,6 +88,8 @@ class ExperimentL2:
             score = metrics.roc_auc_score(test_y, pred)
             preds[test_idx] = pred
             scores.append(score)
+            end = time.time()
+            print (' score:{}  time:{}s.'.format(score, end - start))
             i += 1
         scores = np.asarray(scores)
         print scores.mean(), scores.std()
