@@ -98,30 +98,30 @@ class LasagneModel:
 
         # Add a fully-connected layer of 800 units, using the linear rectifier, and
         # initializing weights with Glorot's scheme (which is the default anyway):
-        l_hid1 = lasagne.layers.DenseLayer(
+        self.l_hid1 = lasagne.layers.DenseLayer(
                 l_in_drop, num_units=model_params['hid_size'],
                 nonlinearity=model_params['nonlinearity'],
                 W=lasagne.init.GlorotUniform())
 
         # We'll now add dropout of 50%:
-        l_hid1_drop = lasagne.layers.DropoutLayer(l_hid1, p=model_params['hid_dropout'])
+        l_hid1_drop = lasagne.layers.DropoutLayer(self.l_hid1, p=model_params['hid_dropout'])
 
         # Another 800-unit layer:
-        l_hid2 = lasagne.layers.DenseLayer(
+        self.l_hid2 = lasagne.layers.DenseLayer(
                 l_hid1_drop, num_units=model_params['hid_size'],
                 nonlinearity=model_params['nonlinearity'])
 
         # 50% dropout again:
-        l_hid2_drop = lasagne.layers.DropoutLayer(l_hid2, p=model_params['hid_dropout'])
+        l_hid2_drop = lasagne.layers.DropoutLayer(self.l_hid2, p=model_params['hid_dropout'])
 
         # Finally, we'll add the fully-connected output layer, of 10 softmax units:
-        l_out = lasagne.layers.DenseLayer(
+        self.l_out = lasagne.layers.DenseLayer(
                 l_hid2_drop, num_units=2,
                 nonlinearity=lasagne.nonlinearities.softmax)
 
         # Each layer is linked to its incoming layer(s), so we only need to pass
         # the output layer to give access to a network in Lasagne:
-        self.network = l_out
+        self.network = self.l_out
 
     @classmethod
     def iterate_minibatches(cls, inputs, targets, batchsize, shuffle=False):
@@ -142,11 +142,14 @@ class LasagneModel:
         y = np.asarray(y)
         import lasagne
         import theano
-        import theano.tensor as T
+        from lasagne.regularization import l2, l1
         # Create a loss expression for training, i.e., a scalar objective we want
         # to minimize (for multi-class problem, it is the cross-entropy loss):
         prediction = lasagne.layers.get_output(self.network)
         loss = lasagne.objectives.categorical_crossentropy(prediction, self.var_targets)
+#        l2_penalty = lasagne.regularization.regularize_layer_params([self.l_hid1, self.l_hid2, self.l_out], l2) * self.model_params['l2_reg']
+#        l1_penalty = lasagne.regularization.regularize_layer_params([self.l_hid1, self.l_hid2, self.l_out], l1) * self.model_params['l1_reg']
+#        loss = loss.mean() + l2_penalty #+ l1_penalty
         loss = loss.mean()
 
         # TODO We could add some weight decay as well here, see lasagne.regularization.
@@ -155,8 +158,8 @@ class LasagneModel:
         # parameters at each training step. Here, we'll use Stochastic Gradient
         # Descent (SGD) with Nesterov momentum, but Lasagne offers plenty more.
         params = lasagne.layers.get_all_params(self.network, trainable=1)
-        updates = lasagne.updates.nesterov_momentum(
-                loss, params, learning_rate=self.model_params['learning_rate'], momentum=0.9)
+        #updates = lasagne.updates.adam(loss, params, learning_rate=self.model_params['learning_rate'])
+        updates = lasagne.updates.nesterov_momentum(loss, params, learning_rate=self.model_params['learning_rate'])
 
         # Create a loss expression for validation/testing. The crucial difference
         # here is that we do a deterministic forward pass through the network,
@@ -176,7 +179,7 @@ class LasagneModel:
         self.val_fn = theano.function([self.var_input, self.var_targets], test_loss)
 
         # Finally, launch the training loop.
-        print("Starting training...")
+        #print("Starting training...")
         # We iterate over epochs:
         for epoch in range(self.model_params['num_epochs']):
             # In each epoch, we do a full pass over the training data:
@@ -187,10 +190,12 @@ class LasagneModel:
                 inputs, targets = batch
                 train_err += self.train_fn(inputs, targets)
                 train_batches += 1
-            # Then we print the results for this epoch:
-            # print("Epoch {} of {} took {:.3f}s".format(
-            #         epoch + 1, self.model_params['num_epochs'], time.time() - start_time))
-            # print("  training loss:\t\t{:.6f}".format(train_err / train_batches))
+
+            if (epoch + 1) % 5 == 6:
+                # Then we print the results for this epoch:
+                print "Epoch {} of {} took {:.3f}s".format(
+                         epoch + 1, self.model_params['num_epochs'], time.time() - start_time),
+                print " training loss:\t\t{:.6f}".format(train_err / train_batches)
             # And a full pass over the validation data:
             X_val = None
             y_val = None

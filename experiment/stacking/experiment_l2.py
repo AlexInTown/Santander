@@ -7,7 +7,7 @@ import sklearn.cross_validation as cross_validation
 import sklearn.metrics as metrics
 
 
-def get_top_cv_and_test_preds(out_fname_prefix, top_k=10):
+def get_top_cv_and_test_preds(out_fname_prefix, top_k=10, use_lower=1):
     """
     Get the top k cross-validation predictions of trainset and refit predictions of testset from experiment_l1 results.
     You can use numpy.hstack to join different model results
@@ -28,6 +28,8 @@ def get_top_cv_and_test_preds(out_fname_prefix, top_k=10):
     scores = np.asarray(scores)
     idxs = np.arange(len(scores))
     mscores = scores.mean(axis=1)
+    if use_lower:
+        mscores -= scores.std()
     idxs = sorted(idxs, key=lambda x:mscores[x], reverse=1)[:top_k]
     preds = np.transpose(np.asarray(preds)[idxs])
     refit_preds = np.transpose(np.asarray(refit_preds)[idxs])
@@ -92,7 +94,7 @@ class ExperimentL2:
             print (' score:{}  time:{}s.'.format(score, end - start))
             i += 1
         scores = np.asarray(scores)
-        print scores.mean(), scores.std()
+        print scores.mean(), scores.std(), metrics.roc_auc_score(self.train_y, preds)
         return scores, preds
 
     def fit_fullset_and_predict(self, model):
@@ -100,3 +102,5 @@ class ExperimentL2:
         preds = model.predict(self.test_x)
         return preds
 
+    def get_avg_result(self):
+        return self.test_x.mean(axis=1)

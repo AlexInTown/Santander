@@ -56,7 +56,7 @@ class ExperimentL1:
             print (' score:{}  time:{}s.'.format(score, end - start))
             i += 1
         scores = np.asarray(scores)
-        print scores.mean(), scores.std()
+        print scores.mean(), scores.std(), metrics.roc_auc_score(self.train_y, preds)
         return scores, preds
 
     def fit_fullset_and_predict(self, model):

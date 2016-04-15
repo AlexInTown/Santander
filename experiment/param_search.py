@@ -1,6 +1,7 @@
 # -*- coding:utf-8 -*-
 __author__ = 'zhenouyang'
 import os
+import sys
 import time
 import cPickle as cp
 import itertools
@@ -19,12 +20,14 @@ def write_cv_res_csv(cv_out, cv_csv_out):
         param_keys = param_vals[0].keys()
         param_vals = [param.values() for param in param_vals]
     f = open(cv_csv_out, 'w')
+    f.write('idx,')
     for key in param_keys:
         f.write('{0},'.format(key))
     for i in xrange(len(scores[0])):
         f.write('score_{0},'.format(i))
     f.write('score_mean,score_std\n')
     for i, params in enumerate(param_vals):
+        f.write('{},'.format(i))
         for p in params:
             f.write('{0},'.format(p))
         for s in scores[i]:
@@ -114,7 +117,7 @@ class GridSearch:
 
 class BayesSearch:
     def __init__(self, wrapper_class, experiment, model_param_keys, model_param_space,
-                 cv_out=None, cv_pred_out=None, refit_pred_out=None, dump_round=10):
+                 cv_out=None, cv_pred_out=None, refit_pred_out=None, dump_round=10, use_lower=1):
         """
         Constructor of bayes search.
         Support search on a set of model parameters, and record the cv result of each param configuration.
@@ -156,6 +159,7 @@ class BayesSearch:
         self.eval_round = 0
         self.dump_round = dump_round
         self.trials = Trials()
+        self.use_lower=use_lower
         pass
 
     def objective(self, param_dic):
@@ -176,8 +180,11 @@ class BayesSearch:
         self.param_vals_list.append(param_dic)
         self.scores_list.append(scores)
         self.preds_list.append(preds)
+        loss = -scores.mean()
+        if self.use_lower:
+            loss += scores.std()
         return {
-            'loss': -scores.mean(),
+            'loss': loss,
             'status': STATUS_OK,
             # -- store other results like this
             'eval_time': time.time(),
@@ -217,3 +224,12 @@ class BayesSearch:
         else:
             cp.dump(refit_preds_list, open(refit_pred_out, 'wb'), protocol=2)
         pass
+
+
+
+if __name__ == '__main__':
+    if len(sys.argv) != 2:
+        print 'Usage: python param_search.py <score_pkl_file>'
+        exit()
+    write_cv_res_csv(sys.argv[1], sys.argv[1].replace('.pkl', '.csv'))
+    pass
