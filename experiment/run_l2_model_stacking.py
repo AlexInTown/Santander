@@ -11,13 +11,14 @@ import cPickle as cp
 from hyperopt import hp
 
 
-def get_l2_experiment():
+def get_l2_experiment(use_raw_feats=0):
     exp_l1 = ExperimentL1()
 
     l1_model_results = [
         # neural network results
-        {'prefix': 'nn-standard-bayes', 'top_k': 5, 'is_avg': 0},
-        
+        #{'prefix': 'nn-standard-bayes', 'top_k': 5, 'is_avg': 0},
+        {'prefix': 'nn-adam-small-standard-bayes', 'ids': [64, 23, 26]},
+
         # logistic regression results
         {'prefix': 'sk-lr-bayes-pca20-standard', 'top_k': 5, 'is_avg': 1},
         # {'prefix': 'sk-lr-bayes-pca10-standard', 'top_k': 5, 'is_avg': 1},
@@ -29,17 +30,19 @@ def get_l2_experiment():
 
         # xgboost results
         #{'prefix': 'xgb-bayes-pca10-and-standard', 'top_k': 15, 'is_avg': 0},
-        {'prefix': 'xgb-bayes', 'top_k': 15, 'is_avg': 1},
+        {'prefix': 'xgb-bayes', 'top_k': 30, 'is_avg': 0},
 
         # knn results
-        {'prefix': 'sk-knn-bayes-pca100', 'top_k': 2, 'is_avg': 1},
-        {'prefix': 'sk-knn-bayes-pca200', 'top_k': 2, 'is_avg': 1},
+        # {'prefix': 'sk-knn-bayes-pca100', 'top_k': 2, 'is_avg': 0},
+        # {'prefix': 'sk-knn-bayes-pca200', 'top_k': 2, 'is_avg': 0},
+        {'prefix': 'sk-knn-bayes-pca100', 'ids': [65, 14, 52, 46]},
+        {'prefix': 'sk-knn2-bayes-pca100', 'ids': [53, 57, 24, 28, 46]},
         # {'prefix': 'sk-knn-bayes-pca10-standard', 'top_k': 5, 'is_avg': 1},
         # {'prefix': 'sk-knn-bayes-pca20-standard', 'top_k': 5, 'is_avg': 1},
 
         # random forest results
-        #{'prefix': 'sk-rf-bayes-pca20-standard', 'top_k': 5, 'is_avg': 0},
-        {'prefix': 'sk-rf-bayes-pca10-standard', 'top_k': 5, 'is_avg': 1},
+        {'prefix': 'sk-rf-bayes-pca20-standard', 'top_k': 5, 'is_avg': 0},
+        #{'prefix': 'sk-rf-bayes-pca10-standard', 'top_k': 5, 'is_avg': 1},
         # {'prefix': 'sk-rf-bayes-pca200', 'top_k': 5, 'is_avg': 0},
         # {'prefix': 'sk-rf-bayes-pca100', 'top_k': 5, 'is_avg': 0},
         # {'prefix': 'sk-rf-bayes-raw-extend', 'top_k': 5, 'is_avg': 0},
@@ -47,23 +50,30 @@ def get_l2_experiment():
         # {'prefix': 'sk-rf-bayes-scaled-extend', 'top_k': 5, 'is_avg': 0},
 
     ]
-    exp_l2 = ExperimentL2(exp_l1, l1_model_results)
+    exp_l2 = ExperimentL2(exp_l1, l1_model_results, use_raw_feats=use_raw_feats)
     return exp_l2
 
 
-def xgb_model_stacking(exp_l2):
+def xgb_model_stacking(exp_l2, out_fname_prefix):
     from xgboost.sklearn import XGBClassifier
     param_keys = ['model_type', 'max_depth', 'min_child_weight', 'subsample', 'colsample_bytree',
                   'learning_rate', 'silent', 'objective', 'nthread', 'n_estimators', 'seed']
-    param_space = {'model_type': XGBClassifier, 'max_depth': hp.quniform('max_depth', 3, 9, 1),
+    param_space = {'model_type': XGBClassifier, 'max_depth': hp.quniform('max_depth', 2, 9, 1),
                    'min_child_weight': hp.quniform('min_child_weight', 1, 7, 1),
-                   'subsample': hp.uniform('subsample', 0.5, 1.0),
-                   'colsample_bytree': hp.uniform('colsample', 0.5, 1.0),
+                   'subsample': hp.uniform('subsample', 0.1, 1.0),
+                   'colsample_bytree': hp.uniform('colsample', 0.3, 1.0),
                    'learning_rate': hp.uniform('eta', 0.01, 0.02),
                    'silent': 1, 'objective': 'binary:logistic',
-                   'nthread': 8, 'n_estimators': 100, 'seed': hp.choice('seed', [1234,53454,6676,12893])}
+                   'nthread': 3, 'n_estimators': hp.quniform('n', 100, 1000, 50),
+                   'seed': hp.choice('seed', [1234,53454,6676,12893])}
+    # param_space = {'model_type': XGBClassifier, 'max_depth': hp.quniform('max_depth', 3, 9, 1),
+    #                'min_child_weight': hp.quniform('min_child_weight', 3, 7, 1),
+    #                'subsample': hp.uniform('subsample', 0.1, 1.0),
+    #                'colsample_bytree': hp.uniform('colsample', 0.1, 0.6),
+    #                'learning_rate': hp.uniform('eta', 0.01, 0.02),
+    #                'silent': 1, 'objective': 'binary:logistic',
+    #                'nthread': 4, 'n_estimators': 600, 'seed': hp.choice('seed', [1234,53454,6676,12893])}
     # l2 model output
-    out_fname_prefix = 'stacking-xgb-avg'
     bs = param_search.BayesSearch(SklearnModel, exp_l2, param_keys, param_space,
                                   cv_out=out_fname_prefix+'-scores.pkl',
                                   cv_pred_out=out_fname_prefix+'-preds.pkl',
@@ -74,7 +84,7 @@ def xgb_model_stacking(exp_l2):
     return best
 
 
-def lr_model_stacking(exp_l2):
+def lr_model_stacking(exp_l2, out_fname_prefix):
     param_keys = ['model_type', 'C',
                   'penalty', 'tol', 'solver', 'class_weight',
                   'random_state']
@@ -86,7 +96,6 @@ def lr_model_stacking(exp_l2):
                    'class_weight': hp.choice('cls_w', [None, 'balanced']),
                    'random_state': hp.choice('seed', [1234, 53454, 6676, 12893]),
                    }
-    out_fname_prefix = "stacking-sk-lr"
     bs = param_search.BayesSearch(SklearnModel, exp_l2, param_keys, param_space,
                                   cv_out=out_fname_prefix+'-scores.pkl',
                                   cv_pred_out=out_fname_prefix+'-preds.pkl',
@@ -97,7 +106,7 @@ def lr_model_stacking(exp_l2):
     return best
 
 
-def nn_model_stacking(exp_l2):
+def nn_model_stacking(exp_l2, out_fname_prefix):
     from model_wrappers import LasagneModel
     from lasagne.nonlinearities import sigmoid, tanh, rectify, leaky_rectify
     param_keys = ['in_size', 'hid_size', 'batch_size', 'in_dropout',
@@ -113,7 +122,6 @@ def nn_model_stacking(exp_l2):
                    'l2_reg': hp.uniform('l2_reg', 0.01, 0.2),
                    'num_epochs': hp.quniform('epochs', 100, 1000, 100),
                    }
-    out_fname_prefix = 'stacking-nn'
     bs = param_search.BayesSearch(LasagneModel, exp_l2, model_param_keys=param_keys, model_param_space=param_space,
                      cv_out=out_fname_prefix+'-scores.pkl',
                      cv_pred_out=out_fname_prefix+'-preds.pkl',
@@ -137,13 +145,15 @@ def save_l2_submission(prefix='stacking-xgb'):
 
 
 def main():
-    exp_l2 = get_l2_experiment()
-    xgb_model_stacking(exp_l2)
-    # lr_model_stacking(exp_l2)
-    # nn_model_stacking(exp_l2)
+    exp_l2 = get_l2_experiment(use_raw_feats=0)
+    from experiment.feat_tuning.xgb_feat_analysis import fit_and_print_important_feats
+    fit_and_print_important_feats(exp_l2.train_x, exp_l2.train_y, 300)
+    #xgb_model_stacking(exp_l2, 'stacking-xgb-knn-neural-ids')
+    # lr_model_stacking(exp_l2, 'stacking-sk-lr')
+    # nn_model_stacking(exp_l2, 'stacking-nn')
 
 if __name__ == '__main__':
     main()
-    save_l2_submission('stacking-xgb-avg')
+    #save_l2_submission('stacking-xgb-knn-neural-ids')
     #save_l2_submission('stacking-nn')
     pass

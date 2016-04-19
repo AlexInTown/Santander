@@ -7,7 +7,7 @@ import sklearn.cross_validation as cross_validation
 import sklearn.metrics as metrics
 
 
-def get_top_cv_and_test_preds(out_fname_prefix, top_k=10, use_lower=1):
+def get_top_cv_and_test_preds(out_fname_prefix, top_k=10, use_lower=0):
     """
     Get the top k cross-validation predictions of trainset and refit predictions of testset from experiment_l1 results.
     You can use numpy.hstack to join different model results
@@ -35,9 +35,18 @@ def get_top_cv_and_test_preds(out_fname_prefix, top_k=10, use_lower=1):
     refit_preds = np.transpose(np.asarray(refit_preds)[idxs])
     return preds, refit_preds
 
+def get_cv_and_test_preds(out_fname_prefix, idxs):
+    from utils.config_utils import Config
+    pred_fname = os.path.join(Config.get_string('data.path'), 'output', out_fname_prefix +'-preds.pkl')
+    refit_pred_fname = os.path.join(Config.get_string('data.path'), 'output', out_fname_prefix +'-refit-preds.pkl')
+    refit_preds = cp.load(open(refit_pred_fname, 'rb'))
+    preds = cp.load(open(pred_fname, 'rb'))
+    preds = np.transpose(np.asarray(preds)[idxs])
+    refit_preds = np.transpose(np.asarray(refit_preds)[idxs])
+    return preds, refit_preds
 
 class ExperimentL2:
-    def __init__(self, exp_l1, exp_l1_output):
+    def __init__(self, exp_l1, exp_l1_output, use_raw_feats=0):
         # load result pkl, use the model to get output attributes
         self.train_id = exp_l1.train_id
         self.test_id = exp_l1.test_id
@@ -49,41 +58,56 @@ class ExperimentL2:
         # parse the meta feature
         for data in exp_l1_output:
             prefix = data['prefix']
-            top_k = data['top_k']
-            is_avg = data['is_avg']
-            print '- Loading {} results of {} (is_avg={})'.format(top_k, prefix,is_avg),
+            is_avg = 0
             try:
-                preds, refit_preds = get_top_cv_and_test_preds(prefix, top_k=top_k)
+                if 'ids' in data:
+                    print '- Loading {} results of {} '.format(str(data['ids']), prefix)
+                    preds, refit_preds = get_cv_and_test_preds(prefix, data['ids'])
+                else:
+                    top_k = data['top_k']
+                    is_avg = data['is_avg']
+                    print '- Loading {} results of {} (is_avg={})'.format(top_k, prefix,is_avg),
+                    preds, refit_preds = get_top_cv_and_test_preds(prefix, top_k=top_k)
                 print 'SUCCESS'
             except Exception, e:
                 print 'FAIL', e
                 continue
 
+            train_dict = {}
+            test_dict = {}
+
+            if use_raw_feats:
+                for col in exp_l1.train_x.columns:
+                    train_dict[col] = exp_l1.train_x[col].values
+                for col in exp_l1.test_x.columns:
+                    test_dict[col] = exp_l1.test_x[col].values
             if is_avg:
                 preds = preds.mean(axis=1)
-                preds = np.reshape(preds, (len(preds), 1))
+                train_dict[prefix+'-avg'] = preds
                 refit_preds = refit_preds.mean(axis=1)
-                refit_preds = np.reshape(refit_preds, (len(refit_preds), 1))
-            if self.train_x is not None:
-                self.train_x = np.hstack([self.train_x, preds])
-                self.test_x = np.hstack([self.test_x, refit_preds])
+                test_dict[prefix+'-avg'] = refit_preds
             else:
-                self.train_x = preds
-                self.test_x = refit_preds
+                for i in xrange(preds.shape[1]):
+                    train_dict[prefix+'-'+str(i)] = preds[:, i]
+                    test_dict[prefix+'-'+str(i)] = refit_preds[:, i]
+
+            import pandas as pd
+            self.train_x = pd.DataFrame(data=train_dict)
+            self.test_x = pd.DataFrame(data=test_dict)
         self.random_state = exp_l1.random_state
         pass
 
-    def cross_validation(self, model):
-        kfold = cross_validation.StratifiedKFold(self.train_y, n_folds=5, shuffle=True, random_state=self.random_state)
+    def cross_validation(self, model, n_folds=5):
+        kfold = cross_validation.StratifiedKFold(self.train_y, n_folds=n_folds, shuffle=True, random_state=self.random_state)
         scores = list()
         preds = np.zeros(len(self.train_y))
         i = 0
         for train_idx, test_idx in kfold:
             print ' - fold {0}  '.format(i),
             start = time.time()
-            train_x = self.train_x[train_idx]
+            train_x = self.train_x.iloc[train_idx]
             train_y = self.train_y[train_idx]
-            test_x = self.train_x[test_idx]
+            test_x = self.train_x.iloc[test_idx]
             test_y = self.train_y[test_idx]
             model.fit(train_x, train_y)
             pred = model.predict(test_x)

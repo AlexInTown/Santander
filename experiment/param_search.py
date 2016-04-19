@@ -117,7 +117,7 @@ class GridSearch:
 
 class BayesSearch:
     def __init__(self, wrapper_class, experiment, model_param_keys, model_param_space,
-                 cv_out=None, cv_pred_out=None, refit_pred_out=None, dump_round=10, use_lower=1):
+                 cv_out=None, cv_pred_out=None, refit_pred_out=None, dump_round=10, use_lower=0,n_folds=5):
         """
         Constructor of bayes search.
         Support search on a set of model parameters, and record the cv result of each param configuration.
@@ -137,6 +137,7 @@ class BayesSearch:
         self.model_param_keys = model_param_keys
         self.model_param_space = model_param_space
         self.integer_params = set()
+        self.n_folds = n_folds
         for k, v in model_param_space.iteritems():
             vstr = str(v)
             if vstr.find('quniform') >= 0 \
@@ -172,7 +173,7 @@ class BayesSearch:
         print param_dic
 
         model = self.wrapper_class(param_dic)
-        scores, preds = self.experiment.cross_validation(model)
+        scores, preds = self.experiment.cross_validation(model,n_folds=self.n_folds)
         if self.refit_pred_out:
             model = self.wrapper_class(param_dic)
             refit_pred = self.experiment.fit_fullset_and_predict(model)

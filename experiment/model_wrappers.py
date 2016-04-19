@@ -85,34 +85,37 @@ class SklearnModel:
 class LasagneModel:
 
     def __init__(self, model_params):
-        import lasagne
+
         import theano.tensor as T
         self.model_params = model_params
         self.batch_size = model_params['batch_size']
         self.var_input = T.matrix('var_input')
         self.var_targets = T.ivector('var_targets')
-        l_in = lasagne.layers.InputLayer(shape=(None, model_params['in_size']), input_var=self.var_input)
+
+    def init_layers(self):
+        import lasagne
+        l_in = lasagne.layers.InputLayer(shape=(None, self.model_params['in_size']), input_var=self.var_input)
 
         # Apply 20% dropout to the input data:
-        l_in_drop = lasagne.layers.DropoutLayer(l_in, p=model_params['in_dropout'])
+        l_in_drop = lasagne.layers.DropoutLayer(l_in, p=self.model_params['in_dropout'])
 
         # Add a fully-connected layer of 800 units, using the linear rectifier, and
         # initializing weights with Glorot's scheme (which is the default anyway):
         self.l_hid1 = lasagne.layers.DenseLayer(
-                l_in_drop, num_units=model_params['hid_size'],
-                nonlinearity=model_params['nonlinearity'],
+                l_in_drop, num_units=self.model_params['hid_size'],
+                nonlinearity=self.model_params['nonlinearity'],
                 W=lasagne.init.GlorotUniform())
 
         # We'll now add dropout of 50%:
-        l_hid1_drop = lasagne.layers.DropoutLayer(self.l_hid1, p=model_params['hid_dropout'])
+        l_hid1_drop = lasagne.layers.DropoutLayer(self.l_hid1, p=self.model_params['hid_dropout'])
 
         # Another 800-unit layer:
         self.l_hid2 = lasagne.layers.DenseLayer(
-                l_hid1_drop, num_units=model_params['hid_size'],
-                nonlinearity=model_params['nonlinearity'])
+                l_hid1_drop, num_units=self.model_params['hid_size'],
+                nonlinearity=self.model_params['nonlinearity'])
 
         # 50% dropout again:
-        l_hid2_drop = lasagne.layers.DropoutLayer(self.l_hid2, p=model_params['hid_dropout'])
+        l_hid2_drop = lasagne.layers.DropoutLayer(self.l_hid2, p=self.model_params['hid_dropout'])
 
         # Finally, we'll add the fully-connected output layer, of 10 softmax units:
         self.l_out = lasagne.layers.DenseLayer(
@@ -143,14 +146,19 @@ class LasagneModel:
         import lasagne
         import theano
         from lasagne.regularization import l2, l1
+
+        self.init_layers()
         # Create a loss expression for training, i.e., a scalar objective we want
         # to minimize (for multi-class problem, it is the cross-entropy loss):
         prediction = lasagne.layers.get_output(self.network)
         loss = lasagne.objectives.categorical_crossentropy(prediction, self.var_targets)
-#        l2_penalty = lasagne.regularization.regularize_layer_params([self.l_hid1, self.l_hid2, self.l_out], l2) * self.model_params['l2_reg']
-#        l1_penalty = lasagne.regularization.regularize_layer_params([self.l_hid1, self.l_hid2, self.l_out], l1) * self.model_params['l1_reg']
-#        loss = loss.mean() + l2_penalty #+ l1_penalty
         loss = loss.mean()
+        if 'l2_reg' in self.model_params:
+            l2_penalty = lasagne.regularization.regularize_layer_params([self.l_hid1, self.l_hid2, self.l_out], l2) * self.model_params['l2_reg']
+            loss += l2_penalty
+        if 'l1_reg' in self.model_params:
+            l1_penalty = lasagne.regularization.regularize_layer_params([self.l_hid1, self.l_hid2, self.l_out], l1) * self.model_params['l1_reg']
+            loss += l1_penalty
 
         # TODO We could add some weight decay as well here, see lasagne.regularization.
 
@@ -159,7 +167,7 @@ class LasagneModel:
         # Descent (SGD) with Nesterov momentum, but Lasagne offers plenty more.
         params = lasagne.layers.get_all_params(self.network, trainable=1)
         #updates = lasagne.updates.adam(loss, params, learning_rate=self.model_params['learning_rate'])
-        updates = lasagne.updates.nesterov_momentum(loss, params, learning_rate=self.model_params['learning_rate'])
+        updates = self.model_params['updates'](loss, params, learning_rate=self.model_params['learning_rate'])
 
         # Create a loss expression for validation/testing. The crucial difference
         # here is that we do a deterministic forward pass through the network,
@@ -234,7 +242,6 @@ class LasagneModel:
         """
         X = np.asarray(X)
         import theano
-        import theano.tensor as T
         test_fn = theano.function([self.var_input], self.test_prediction, allow_input_downcast=1)
         return test_fn(X)[:, 1]
 
