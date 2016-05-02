@@ -17,7 +17,7 @@ def get_l2_experiment(use_raw_feats=0):
     l1_model_results = [
         # neural network results
         #{'prefix': 'nn-standard-bayes', 'top_k': 5, 'is_avg': 0},
-        {'prefix': 'nn-adam-small-standard-bayes', 'ids': [64, 23, 26]},
+        #{'prefix': 'nn-adam-small-standard-bayes', 'ids': [64, 23, 26]},
 
         # logistic regression results
         {'prefix': 'sk-lr-bayes-pca20-standard', 'top_k': 5, 'is_avg': 1},
@@ -41,20 +41,20 @@ def get_l2_experiment(use_raw_feats=0):
         # {'prefix': 'sk-knn-bayes-pca20-standard', 'top_k': 5, 'is_avg': 1},
 
         # random forest results
-        {'prefix': 'sk-rf-bayes-pca20-standard', 'top_k': 5, 'is_avg': 0},
-        #{'prefix': 'sk-rf-bayes-pca10-standard', 'top_k': 5, 'is_avg': 1},
+        # {'prefix': 'sk-rf-bayes-pca20-standard', 'top_k': 5, 'is_avg': 0},
+        # {'prefix': 'sk-rf-bayes-pca10-standard', 'top_k': 5, 'is_avg': 1},
         # {'prefix': 'sk-rf-bayes-pca200', 'top_k': 5, 'is_avg': 0},
         # {'prefix': 'sk-rf-bayes-pca100', 'top_k': 5, 'is_avg': 0},
         # {'prefix': 'sk-rf-bayes-raw-extend', 'top_k': 5, 'is_avg': 0},
         # {'prefix': 'sk-rf-bayes-standard-extend', 'top_k': 5, 'is_avg': 0},
-        # {'prefix': 'sk-rf-bayes-scaled-extend', 'top_k': 5, 'is_avg': 0},
+        {'prefix': 'sk-rf-bayes-scaled-extend', 'top_k': 5, 'is_avg': 0},
 
     ]
     exp_l2 = ExperimentL2(exp_l1, l1_model_results, use_raw_feats=use_raw_feats)
     return exp_l2
 
 
-def xgb_model_stacking(exp_l2, out_fname_prefix):
+def xgb_model_stacking(exp_l2, out_fname_prefix, use_lower=0):
     from xgboost.sklearn import XGBClassifier
     param_keys = ['model_type', 'max_depth', 'min_child_weight', 'subsample', 'colsample_bytree',
                   'learning_rate', 'silent', 'objective', 'nthread', 'n_estimators', 'seed']
@@ -77,8 +77,8 @@ def xgb_model_stacking(exp_l2, out_fname_prefix):
     bs = param_search.BayesSearch(SklearnModel, exp_l2, param_keys, param_space,
                                   cv_out=out_fname_prefix+'-scores.pkl',
                                   cv_pred_out=out_fname_prefix+'-preds.pkl',
-                                  refit_pred_out=out_fname_prefix+'refit-preds.pkl',
-                                  dump_round=10)
+                                  refit_pred_out=out_fname_prefix+'-refit-preds.pkl',
+                                  dump_round=10, use_lower=use_lower)
     best = bs.search_by_cv()
     param_search.write_cv_res_csv(bs.cv_out, bs.cv_out.replace('.pkl', '.csv'))
     return best
@@ -99,7 +99,7 @@ def lr_model_stacking(exp_l2, out_fname_prefix):
     bs = param_search.BayesSearch(SklearnModel, exp_l2, param_keys, param_space,
                                   cv_out=out_fname_prefix+'-scores.pkl',
                                   cv_pred_out=out_fname_prefix+'-preds.pkl',
-                                  refit_pred_out=out_fname_prefix+'refit-preds.pkl',
+                                  refit_pred_out=out_fname_prefix+'-refit-preds.pkl',
                                   dump_round=10)
     best = bs.search_by_cv(max_evals=101)
     param_search.write_cv_res_csv(bs.cv_out, bs.cv_out.replace('.pkl', '.csv'))
@@ -125,7 +125,7 @@ def nn_model_stacking(exp_l2, out_fname_prefix):
     bs = param_search.BayesSearch(LasagneModel, exp_l2, model_param_keys=param_keys, model_param_space=param_space,
                      cv_out=out_fname_prefix+'-scores.pkl',
                      cv_pred_out=out_fname_prefix+'-preds.pkl',
-                     refit_pred_out=out_fname_prefix+'refit-preds.pkl',
+                     refit_pred_out=out_fname_prefix+'-refit-preds.pkl',
                      dump_round=1)
     best = bs.search_by_cv(max_evals=201)
     param_search.write_cv_res_csv(bs.cv_out, bs.cv_out.replace('.pkl', '.csv'))
@@ -147,8 +147,9 @@ def save_l2_submission(prefix='stacking-xgb'):
 def main():
     exp_l2 = get_l2_experiment(use_raw_feats=0)
     from experiment.feat_tuning.xgb_feat_analysis import fit_and_print_important_feats
-    fit_and_print_important_feats(exp_l2.train_x, exp_l2.train_y, 300)
-    #xgb_model_stacking(exp_l2, 'stacking-xgb-knn-neural-ids')
+    #print exp_l2.train_x.columns
+    #fit_and_print_important_feats(exp_l2.train_x, exp_l2.train_y, 300)
+    xgb_model_stacking(exp_l2, 'stacking-xgb-lr-rf-knn-ids', use_lower=1)
     # lr_model_stacking(exp_l2, 'stacking-sk-lr')
     # nn_model_stacking(exp_l2, 'stacking-nn')
 

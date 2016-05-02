@@ -55,6 +55,13 @@ class ExperimentL2:
         self.train_x = None
         self.test_x = None
 
+        train_dict = {}
+        test_dict = {}
+        if use_raw_feats:
+            for col in exp_l1.train_x.columns:
+                train_dict[col] = exp_l1.train_x[col].values
+            for col in exp_l1.test_x.columns:
+                test_dict[col] = exp_l1.test_x[col].values
         # parse the meta feature
         for data in exp_l1_output:
             prefix = data['prefix']
@@ -73,14 +80,6 @@ class ExperimentL2:
                 print 'FAIL', e
                 continue
 
-            train_dict = {}
-            test_dict = {}
-
-            if use_raw_feats:
-                for col in exp_l1.train_x.columns:
-                    train_dict[col] = exp_l1.train_x[col].values
-                for col in exp_l1.test_x.columns:
-                    test_dict[col] = exp_l1.test_x[col].values
             if is_avg:
                 preds = preds.mean(axis=1)
                 train_dict[prefix+'-avg'] = preds
@@ -91,10 +90,11 @@ class ExperimentL2:
                     train_dict[prefix+'-'+str(i)] = preds[:, i]
                     test_dict[prefix+'-'+str(i)] = refit_preds[:, i]
 
-            import pandas as pd
-            self.train_x = pd.DataFrame(data=train_dict)
-            self.test_x = pd.DataFrame(data=test_dict)
+        import pandas as pd
+        self.train_x = pd.DataFrame(data=train_dict)
+        self.test_x = pd.DataFrame(data=test_dict)
         self.random_state = exp_l1.random_state
+        #self.random_state = 8862
         pass
 
     def cross_validation(self, model, n_folds=5):

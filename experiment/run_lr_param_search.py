@@ -1,8 +1,5 @@
 # -*- coding: utf-8 -*-
 __author__ = 'AlexInTown'
-
-# -*- coding: utf-8 -*-
-__author__ = 'AlexInTown'
 import os
 from sklearn.linear_model import LogisticRegression
 from experiment.stacking.experiment_l1 import ExperimentL1

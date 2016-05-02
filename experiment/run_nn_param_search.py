@@ -22,17 +22,17 @@ def nn_bayes_search(train_fname, test_fname, out_fname_prefix='nn-bayes'):
                   'num_epochs']
     param_space = {'in_size': exp.train_x.shape[1],
                    'hid_size': hp.quniform('hid', 10, 300, 5),
-                   'batch_size': hp.quniform('bsize', 1000, 10000, 50),
+                   'batch_size': hp.quniform('bsize', 200, 5000, 50),
                    'in_dropout': hp.uniform('in_drop',  0.0, 0.5),
                    'hid_dropout': hp.uniform('hid_drop',  0.0, 0.6),
                    'updates': hp.choice('updates', [nesterov_momentum, adam]),
                    'nonlinearity': hp.choice('nonlinear',  [sigmoid, tanh, rectify]),
-                   'learning_rate': hp.uniform('lr', 0.00005, 0.001),
+                   'learning_rate': hp.uniform('lr', 0.0001, 0.1),
 
                    #'learning_rate': 0.01,
                    #'l1_reg': hp.uniform('l1_reg', 0.0, 0.000001),
                    #'l2_reg': hp.uniform('l2_reg', 0.0, 0.000001),
-                   'num_epochs': hp.quniform('epochs', 300, 3000, 100),
+                   'num_epochs': hp.quniform('epochs', 200, 1000, 50),
                    }
 
     bs = param_search.BayesSearch(LasagneModel, exp, model_param_keys=param_keys, model_param_space=param_space,
@@ -53,7 +53,7 @@ def nn_param_avg_submission(prefix, top_k=1):
 
 
 def main():
-    nn_bayes_search('standard_train.csv', 'standard_test.csv', 'nn-updates-stand-bayes-cv5')
+    nn_bayes_search('standard_train.csv', 'standard_test.csv', 'nn-updates-high-lr-bayes-cv5')
     pass
 
 
